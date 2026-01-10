@@ -46,7 +46,24 @@ INSTALLED_APPS = [
     'inventory',
     'audit',
     'utils',
+    'drf_spectacular', #documentacion de la api
 ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Configuración  para personalizar el panel
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Mi Increíble API de Django',
+    'DESCRIPTION': 'Documentación detallada de mis rutas',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

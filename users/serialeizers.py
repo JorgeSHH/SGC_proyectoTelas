@@ -92,6 +92,7 @@ class SaleswomanSerialeizer(serializers.ModelSerializer):
 # aun falta delete y path para SaleswomanSerialeizer
 
 
+
 class AdministratorSerialeizer(serializers.ModelSerializer):
     class Meta:
         model = Administrator

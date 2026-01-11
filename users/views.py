@@ -5,7 +5,3 @@ from .serialeizers import SaleswomanSerialeizer
 
 
 # Create your views here.
-
-class SaleswomanViewset(viewsets.ModelViewSet):
-    queryset = Saleswoman.objects.all()
-    serializer_class = SaleswomanSerialeizer

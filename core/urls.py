@@ -15,15 +15,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from users import urls
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users/', include('users.urls')),
     path('api/documen/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'), #ver la documentacion
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'), #ver la documentacion de otra froma
-    path('api/schema/', SpectacularAPIView.as_交代_view(), name='schema'), # descarga el Ymal
 ]

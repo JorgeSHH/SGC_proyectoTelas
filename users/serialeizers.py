@@ -146,6 +146,7 @@ class AdministratorSerialeizer(serializers.ModelSerializer):
         return value
 
     
+    
     def validate_email(self, value):
         User = get_user_model()
         email_map = value.lower()
@@ -162,33 +163,46 @@ class AdministratorSerialeizer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """ 
-        En esta funcion se extrae la clave antes de que se cree el administrador luego se crea con lo que quedo 
-        creamos el administrador esto activa el signal que a su ves crea el User, luego busca el User creado y 
-        le asigna la clave real,  o sea guarda en User no en administrador la clave
+        En esta funcion se extrae la clave antes de que se cree la vendedora luego se crea con lo que quedo 
+        creamos la vendedora esto activa el signal que a su ves crea el User, luego busca el User creado y 
+        le asigna la clave real,  o sea guarda en User no en la vendedora la clave
         """
         password = validated_data.pop('password') 
+        User = get_user_model() 
     
         with transaction.atomic():
             administrator = Administrator.objects.create(**validated_data)
-            
-            user = User.objects.get(email = administrator.email)
-            user.set_password(password)
-            user.save()
+
+            User.objects.create_user(
+                username = administrator.username,
+                email = administrator.email,
+                password= password,
+                role = User.ADMIN,
+                profile_id= administrator.pk
+            )
 
             return administrator
         
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
+        User = get_user_model()
 
         with transaction.atomic():
-            instance = super().update(instance, validated_data)
+            email_viejo = instance.email
 
-            user = get_user_model().objects.get(email=instance.email)
-            user.username = validated_data.get('username', user.username)
-            user.email = validated_data.get('email', user.email)
-            if password:
-                user.set_password(password)
-            user.save()
+            instance = super().update(instance, validated_data)
+            try:
+                user = User.objects.get(email=email_viejo)
+                user.username = validated_data.get('username', user.username)
+                user.email = validated_data.get('email', user.email)
+                user.role = validated_data.get('role', user.role)
+                user.is_active = validated_data.get('status', user.is_active)
+                if password:
+                    user.set_password(password)
+                user.save()
+            except User.DoesNotExist:
+                raise serializers.ValidationError("No se encontró el usuario de autenticación vinculado.")
+
             return instance
 
 

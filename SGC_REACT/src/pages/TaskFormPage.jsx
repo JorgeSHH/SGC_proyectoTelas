@@ -1,5 +1,5 @@
 import {useForm} from 'react-hook-form'
-import {createTask, } from '../api/tasks.api'
+import {createTask, deleteTask } from '../api/tasks.api'
 import {useNavigate, useParams} from 'react-router-dom'
 
 
@@ -29,10 +29,16 @@ export function TaskFormPage() {
           <button>save</button>
         </form>
 
-        <button>
+        {params.id && <button onClick={async () => {
+          const accepted = window.confirm("are you sure you want to delete it?") 
+          if (accepted) {
+          await deleteTask(params.id)
+          navigate("/tasks");
+          }
+        }}>
           Delete
-        </button>
-       
+        </button>}
+      
       </div>
     );
   }

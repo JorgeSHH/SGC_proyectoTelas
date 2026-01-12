@@ -1,11 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SaleswomanViewset
+from .views import SaleswomanViewSet #AdministratorViewSet
 
+router = DefaultRouter()
+router.register(r'saleswoman', SaleswomanViewSet, basename='vendedora')
+#router.register(r'administrators', AdministratorViewSet, basename='administrador')
 
 
 
 urlpatterns = [
-    path('',),
+    path('', include(router.urls)),
 ]
     

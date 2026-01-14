@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta 
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +31,11 @@ DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
+
+AUTH_USER_MODEL = 'users.User'
+
 # AUTH_USER_MODEL = 'users.User'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -47,12 +52,26 @@ INSTALLED_APPS = [
     'audit',
     'utils',
     'drf_spectacular', #documentacion de la api
+
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+
 ]
 
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
+
+
+}
+
 
 # Configuración  para personalizar el panel
 SPECTACULAR_SETTINGS = {
@@ -63,9 +82,19 @@ SPECTACULAR_SETTINGS = {
 }
 
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # El token dura 1 hora
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # El refresh dura 1 día para ese dia de trabajo mejor asi
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'email',  # el token es el email ojo con eso 
+    'USER_ID_CLAIM': 'user_email',
+}
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -128,7 +157,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-es'
 
 TIME_ZONE = 'UTC'
 
@@ -141,3 +170,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Si quieres que el navegador pueda enviarte cookies o tokens de sesión
+CORS_ALLOW_CREDENTIALS = True

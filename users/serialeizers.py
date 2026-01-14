@@ -3,6 +3,7 @@ from .models import User, Saleswoman, Administrator
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+
 class SaleswomanSerialeizer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
@@ -76,6 +77,7 @@ class SaleswomanSerialeizer(serializers.ModelSerializer):
             User.objects.create_user(
                 username = saleswoman.username,
                 email = saleswoman.email,
+                first_name=saleswoman.first_name,
                 password= password,
                 role = User.SALESWOMAN,
                 profile_id= saleswoman.pk
@@ -106,9 +108,6 @@ class SaleswomanSerialeizer(serializers.ModelSerializer):
             return instance
     
    
-
-
-
 
 
 class AdministratorSerialeizer(serializers.ModelSerializer):
@@ -145,7 +144,7 @@ class AdministratorSerialeizer(serializers.ModelSerializer):
         
         return value
 
-    
+
     
     def validate_email(self, value):
         User = get_user_model()
@@ -176,6 +175,7 @@ class AdministratorSerialeizer(serializers.ModelSerializer):
             User.objects.create_user(
                 username = administrator.username,
                 email = administrator.email,
+                first_name = administrator.first_name,
                 password= password,
                 role = User.ADMIN,
                 profile_id= administrator.pk
@@ -204,5 +204,8 @@ class AdministratorSerialeizer(serializers.ModelSerializer):
                 raise serializers.ValidationError("No se encontró el usuario de autenticación vinculado.")
 
             return instance
+
+
+
 
 

@@ -31,7 +31,11 @@ DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
+
 AUTH_USER_MODEL = 'users.User'
+
+# AUTH_USER_MODEL = 'users.User'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,8 +52,10 @@ INSTALLED_APPS = [
     'audit',
     'utils',
     'drf_spectacular', #documentacion de la api
+
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+
 ]
 
 
@@ -64,6 +70,7 @@ REST_FRAMEWORK = {
 }
 
 
+}
 
 
 # Configuración  para personalizar el panel
@@ -73,6 +80,7 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # El token dura 1 hora

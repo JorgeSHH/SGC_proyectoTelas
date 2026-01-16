@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings
+from users.models import Administrator
 
 # Create your models here.
 
@@ -10,7 +10,7 @@ class record(models.Model):
         ('DELETE', 'Eliminacion'),
     ]
     record_id = models.AutoField(primary_key=True)
-    administrator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='audit_actions')
+    administrator = models.ForeignKey(Administrator, on_delete=models.SET_NULL, null=True, related_name='auditoria_acciones')
     model_name = models.CharField(max_length=50)  # Ej: 'FabricScrap', 'Saleswoman'
     object_id = models.IntegerField()
     action_type = models.CharField(max_length= 50)

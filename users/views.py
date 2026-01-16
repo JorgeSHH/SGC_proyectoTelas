@@ -34,8 +34,14 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
     def perform_destroy(self, instance):
         """ este metodo asegura que se elimine en user lo que se eliminane en Saleswoman"""
         old_data = model_to_dict(instance)
+
+        try:
+            admin_profile = Administrator.objects.get(email=self.request.user.email)
+        except Administrator.DoesNotExist:
+            raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
+
         self.log_action(
-            admin=self.request.user,
+            admin=admin_profile,
             action_type='DELETE',
             instance= instance,
             old_data= old_data
@@ -50,18 +56,29 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
 
     def perform_create(self, serializer):
         """este metodo guarda la vendedora y lo registra en la auditoria"""
-        instancia = serializer.save() # aqui se guarda la vendedora
-        self.log_action(admin=self.request.user, action_type='CREATE', instance=instancia)  # aqui se registra en  la auditoria
+        try:
+            admin_profile = Administrator.objects.get(email=self.request.user.email)
+        except Administrator.DoesNotExist:
+            raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
+
+        instancia = serializer.save(administrator = admin_profile)# aqui se guarda la vendedora
+
+        self.log_action(admin=admin_profile, action_type='CREATE', instance=instancia)  # aqui se registra en  la auditoria
     
     def perform_update(self, serializer):
         """"""
         old_instance = self.get_object() # aqui se guarda los dato viejos  para el atributo de 
         old_data = model_to_dict(old_instance)
 
+        try:
+            admin_profile = Administrator.objects.get(email=self.request.user.email)
+        except Administrator.DoesNotExist:
+            raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
+
         instancia = serializer.save()
 
         self.log_action(
-            admin=self.request.user,
+            admin=admin_profile,
             action_type = 'UPDATE',
             instance = instancia,
             old_data= old_data #ojo aqui la old_data es de lo de arriba uno es el atributo y otra la asignada al atributo

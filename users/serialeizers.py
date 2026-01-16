@@ -9,7 +9,7 @@ class SaleswomanSerialeizer(serializers.ModelSerializer):
     class Meta:
         model = Saleswoman
         fields = ['saleswoman_id','administrator','first_name','last_name','email','phone','status','username','role','created_at', 'password']
-        read_only_fields = ['saleswoman_id', 'created_at']
+        read_only_fields = ['saleswoman_id', 'created_at', 'administrator']
         extra_kwargs = {
             'email': {
                 'error_messages': {'unique': 'Este correo ya está registrado en el sistema.'}

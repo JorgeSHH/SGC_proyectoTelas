@@ -9,12 +9,55 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from audit.mixins import AuditMixins
 from django.forms.models import model_to_dict
+from rest_framework import filters, status
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 # Create your views here.
 
 class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
     queryset = Saleswoman.objects.all()
     serializer_class = SaleswomanSerialeizer
+
+# configuracion para los filtros
+
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['saleswoman_id', 'email']#busqueda especifica
+    search_fields = ['first_name','last_name','email','username'] #busqueda mas grande no taan especifica
+
+# metodos de personalizacion de respuestas para enviar algo al frotend antes que nada
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data = request.data)
+        serializer.is_valid(raise_exception= True)
+        self.perform_create(serializer)
+        return Response({
+            "status":"success",
+            "message": "Vendedora registrada exitosamente en el sistema",
+            "data": serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        parcial = kwargs.pop('partial', False)
+        instancia = self.get_object()
+        serializer = self.get_serializer(instancia, data=request.data, partial = parcial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            "status":"success",
+            "message": "Datos de la vendedora actualizados correctamente.",
+            "data": serializer.data
+        })
+
+    def destroy(self, request, *arg, **kwargs):
+        instance = self.get_object()
+        email_borrado = instance.email
+        self.perform_destroy(instance)
+        return Response({
+            "status":"success",
+            "message": f"La vendedora con email {email_borrado} ha sido eliminada de forma permanente.",
+        }, status=status.HTTP_200_OK)
+
 
 # metodo para los permisos
     

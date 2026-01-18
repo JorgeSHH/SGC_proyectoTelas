@@ -166,3 +166,12 @@ STATIC_URL = 'static/'
 
 # Si quieres que el navegador pueda enviarte cookies o tokens de sesión
 CORS_ALLOW_CREDENTIALS = True
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # el transporte
+EMAIL_HOST = 'smtp.gmail.com' # la direccion
+EMAIL_PORT = 587 # puerto seguro
+EMAIL_USE_TLS = True # cifrado
+EMAIL_HOST_USER = os.getenv('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
+DEFAULT_FROM_EMAIL = f"SGC Gestión <{os.getenv('EMAIL_USER')}>"

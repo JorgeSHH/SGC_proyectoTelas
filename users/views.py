@@ -94,8 +94,7 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
         with transaction.atomic():
             User.objects.filter(email = instance.email).delete()
             instance.delete()
-        
-        
+            
 
     def perform_create(self, serializer):
         """este metodo guarda la vendedora y lo registra en la auditoria"""
@@ -103,10 +102,18 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
             admin_profile = Administrator.objects.get(email=self.request.user.email)
         except Administrator.DoesNotExist:
             raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
+        
+        password_plana = self.request.data.get('password')
 
         instancia = serializer.save(administrator = admin_profile)# aqui se guarda la vendedora
 
         self.log_action(admin=admin_profile, action_type='CREATE', instance=instancia)  # aqui se registra en  la auditoria
+
+        try:
+            from utils.utils import enviar_correo_bienvenida
+            enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plana)
+        except Exception as e:
+            print(f"Error enviando correo: {e}")
     
     def perform_update(self, serializer):
         """"""

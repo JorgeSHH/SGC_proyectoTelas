@@ -6,3 +6,5 @@
 - recomendar que el **correo electronico es unico** no pueden ni existira dos personas registradas al mismo correo
 
 - en el atributo name se le recomienda al administrador que coloquye el typo de la tela mas el color ej. si el tipo es type:**algodon fino**  el nombre seria name:**algodon fino rojo** otro caso i el tipo es type:**algodon grueso**  el nombre seria name:**algodon grueso rojo** si hay otra seria name:**algodon grueso azul** la descripcion es para detalles mas 
+
+- Cuando un Admin elimine a otro, todas las vendedoras vinculadas al Admin que va a desaparecer, se les asignaran al Admin que está ejecutando la acción de eliminar.

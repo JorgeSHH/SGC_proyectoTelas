@@ -133,9 +133,28 @@ class AdministratorViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdministrator]
 
     def perform_destroy(self, instance):
-        """ este metodo asegura que se elimine en user lo que se eliminane en Saleswoman"""
+        """ 
+        este metodo asegura que se elimine en user lo que se eliminane en 
+        anministrator, y que se reasignen las vendedoras a el admin que 
+        ejecuta la accion de eliminar, para no dejar en null los campos 
+        de las saleswoman por parte de administrator_id
+        """
         User = get_user_model()
+
+        try:
+            heredero = Administrator.objects.get(email = self.request.user.email)
+        except Administrator.DoesNotExist:
+            raise serializers.ValidationError({"detail":"No tiene un perfil de administrator válido para realizar esta accion."})
+
+        if heredero == instance:
+            raise serializers.ValidationError({"detail":"No puedes eliminat tu propio perfil de administrador."})
+
         with transaction.atomic():
+            
+            vendedora_a_tranferir = Saleswoman.objects.filter(administrator = instance)
+            
+            vendedora_a_tranferir.update(administrator = heredero)
+
             User.objects.filter(email = instance.email).delete()
             instance.delete()
 

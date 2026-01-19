@@ -4,3 +4,5 @@ __pycache__/
 castilloDB.sqlite3
 .env
 media/
+PATH.md
+requirements.txt

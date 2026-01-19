@@ -70,7 +70,6 @@ REST_FRAMEWORK = {
 }
 
 
-}
 
 
 # Configuración  para personalizar el panel

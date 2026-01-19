@@ -139,6 +139,54 @@ class AdministratorViewSet(viewsets.ModelViewSet):
     serializer_class = AdministratorSerialeizer
     permission_classes = [IsAdministrator]
 
+
+# metodos de personalizacion de respuestas para enviar algo al frotend antes que nada
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data = request.data)
+        serializer.is_valid(raise_exception= True)
+        self.perform_create(serializer)
+        return Response({
+            "status":"success",
+            "message": "Administrador registrado exitosamente en el sistema",
+            "data": serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        parcial = kwargs.pop('partial', False)
+        instancia = self.get_object()
+        serializer = self.get_serializer(instancia, data=request.data, partial = parcial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({
+            "status":"success",
+            "message": "Perfil de administrador actualizado correctamente.",
+            "data": serializer.data
+        })
+
+    def destroy(self, request, *arg, **kwargs):
+        instance = self.get_object()
+        email_borrado = instance.email
+        self.perform_destroy(instance)
+        return Response({
+            "status":"success",
+            "message": f"El administrador {email_borrado} ha sido eliminado y sus vendedoras reasignadas.",
+        }, status=status.HTTP_200_OK)
+
+
+    def perform_create(self, serializer):
+        """
+        guarda el admin y envia correo de bienbenida
+        """
+        password_plata = self.request.data.get('password')
+        instancia = serializer.save()
+
+        try:
+            from utils.utils import enviar_correo_bienvenida
+            enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plata)
+        except Exception as e:
+            print(f"Error enviando correo al adminastrador: {e}")
+
     def perform_destroy(self, instance):
         """ 
         este metodo asegura que se elimine en user lo que se eliminane en 

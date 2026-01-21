@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework', #dependencias y apps adicionales a Django
+    'django_filters', #dependencias y apps adicionales a Django
+    'rest_framework', 
     'corsheaders',
     'users',
     'inventory',
@@ -172,3 +173,12 @@ STATIC_URL = 'static/'
 
 # Si quieres que el navegador pueda enviarte cookies o tokens de sesión
 CORS_ALLOW_CREDENTIALS = True
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_USER') # Tu correo
+EMAIL_HOST_PASSWORD =  os.getenv('EMAIL_PASS') # NO es tu clave normal de Gmail
+DEFAULT_FROM_EMAIL = f"SGC Gestión <{os.getenv('EMAIL_USER')}>"

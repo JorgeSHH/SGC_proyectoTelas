@@ -9,10 +9,6 @@ router = DefaultRouter()
 router.register(r'saleswoman', SaleswomanViewSet, basename='vendedora')
 router.register(r'administrators', AdministratorViewSet, basename='administrador')
 
-
-
-
-
 urlpatterns = [
     path('', include(router.urls)),
     # rutas para autenticacion

@@ -59,16 +59,16 @@ class FabricScrapSerializer(serializers.ModelSerializer):
 
         length_meters = value
 
-        if length_meters < 0.1:
-            raise serializers.ValidationError("La Longitud minima es de 0.1 metros.") #10cm
+        if length_meters < 0.15:
+            raise serializers.ValidationError("La Longitud minima es de 0.15 metros.") #10cm
         return length_meters
     
     def validate_width_meters(self, value):
 
         width_meters = value
 
-        if width_meters < 0.1:
-            raise serializers.ValidationError("La Longitud minima es de 0.1 metros.") #10cm
+        if width_meters < 0.15:
+            raise serializers.ValidationError("La Longitud minima es de 0.15 metros.") #10cm
         return width_meters
 
     class Meta:

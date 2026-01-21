@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.conf import settings
+from decimal import Decimal
 # Create your models here.
 
 class Fabric_Type(models.Model):
@@ -23,12 +24,12 @@ class Fabric_Scrap(models.Model):
     fabric_scrap_id = models.AutoField(unique=True, primary_key=True)
     fabric_type = models.ForeignKey('Fabric_Type', on_delete=models.PROTECT, related_name="scraps_type")
 
-    length_meters = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0.01)])
-    width_meters = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0.01)])
+    length_meters = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal("0.15"))])
+    width_meters = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal("0.15"))])
     description = models.TextField(blank=True, help_text="Descripción opcional del retazo")
     active = models.BooleanField(default=True, help_text="Indica si el retazo está disponible")
 
-    qr = models.CharField(max_length=250, blank=True, help_text="Código QR asociado al retazo")
+    qr = models.CharField(max_length=250, blank=True, null=True, help_text="Código QR asociado al retazo")
 
     created_by_role = models.CharField(max_length=50, editable=False)
     created_by = models.ForeignKey(

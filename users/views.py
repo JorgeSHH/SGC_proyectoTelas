@@ -25,7 +25,7 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
     filterset_fields = ['saleswoman_id', 'email']#busqueda especifica
     search_fields = ['first_name','last_name','email','username'] #busqueda mas grande no taan especifica
 
-# metodos de personalizacion de respuestas para enviar algo al frotend antes que nada
+# metodos personalizados para crear, actualizar y eliminar 
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data = request.data)
@@ -61,11 +61,9 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
 
 # metodo para los permisos
     
-    #solo administradores podran hacer CRUD a esta vista
     def get_permissions(self):
         return [IsAdministrator()]
     
-    # verifica si esta autentificado y adicional a eso si es admin y solo devuelve de ser asi, de lo contrario nada 
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.role == 'admin':
             return Saleswoman.objects.all()
@@ -73,7 +71,6 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
 
 #Metodos del CRUD y el el registro en auditoria(ganchos)
 
-    # este metodo asegura que tambien se borre de la tabla secundaria User
     def perform_destroy(self, instance):
         """ este metodo asegura que se elimine en user lo que se eliminane en Saleswoman"""
         old_data = model_to_dict(instance)
@@ -117,7 +114,7 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
     
     def perform_update(self, serializer):
         """"""
-        old_instance = self.get_object() # aqui se guarda los dato viejos  para el atributo de 
+        old_instance = self.get_object()
         old_data = model_to_dict(old_instance)
 
         try:

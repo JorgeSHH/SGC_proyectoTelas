@@ -43,7 +43,7 @@ class SaleswomanSerialeizer(serializers.ModelSerializer):
         if user_exists.exists():
             raise serializers.ValidationError("Este nombre de usuario ya está ocupado por otro usuario.")
         
-        return value
+        return value.lower()
 
     def validate_phone(self, value):
         if len(value) > 15:
@@ -142,7 +142,7 @@ class AdministratorSerialeizer(serializers.ModelSerializer):
         if user_exists.exists():
             raise serializers.ValidationError("Este nombre de usuario ya está ocupado por otro usuario.")
         
-        return value
+        return value.lower()
 
 
     

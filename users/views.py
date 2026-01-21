@@ -109,11 +109,11 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
 
         self.log_action(admin=admin_profile, action_type='CREATE', instance=instancia)  # aqui se registra en  la auditoria
 
-        try:
-            from utils.utils import enviar_correo_bienvenida
-            enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plana)
-        except Exception as e:
-            print(f"Error enviando correo: {e}")
+        # try:
+        #     from utils.utils import enviar_correo_bienvenida
+        #     enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plana)
+        # except Exception as e:
+        #     print(f"Error enviando correo: {e}")
     
     def perform_update(self, serializer):
         """"""
@@ -139,6 +139,12 @@ class AdministratorViewSet(viewsets.ModelViewSet):
     serializer_class = AdministratorSerialeizer
     permission_classes = [IsAdministrator]
 
+
+# configuracion para los filtros
+
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['administrator_id', 'email']#busqueda especifica
+    search_fields = ['first_name','last_name','email','username'] #busqueda mas grande no taan especifica
 
 # metodos de personalizacion de respuestas para enviar algo al frotend antes que nada
 
@@ -173,7 +179,6 @@ class AdministratorViewSet(viewsets.ModelViewSet):
             "message": f"El administrador {email_borrado} ha sido eliminado y sus vendedoras reasignadas.",
         }, status=status.HTTP_200_OK)
 
-
     def perform_create(self, serializer):
         """
         guarda el admin y envia correo de bienbenida
@@ -181,11 +186,11 @@ class AdministratorViewSet(viewsets.ModelViewSet):
         password_plata = self.request.data.get('password')
         instancia = serializer.save()
 
-        try:
-            from utils.utils import enviar_correo_bienvenida
-            enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plata)
-        except Exception as e:
-            print(f"Error enviando correo al adminastrador: {e}")
+        # try:
+        #     from utils.utils import enviar_correo_bienvenida
+        #     enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plata)
+        # except Exception as e:
+        #     print(f"Error enviando correo al adminastrador: {e}")
 
     def perform_destroy(self, instance):
         """ 

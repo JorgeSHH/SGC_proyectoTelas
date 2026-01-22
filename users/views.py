@@ -190,7 +190,7 @@ class AdministratorViewSet(viewsets.ModelViewSet):
             return Response({
             "status":"error",
             "message": "No se pudo actualizar el perfil del administrador.",
-            "error": serializer.error
+            "error": serializer.errors
             }, status=status.HTTP_200_OK)
         
         self.perform_update(serializer)

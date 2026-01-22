@@ -12,7 +12,7 @@ from django.forms.models import model_to_dict
 from rest_framework import filters, status
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 # Create your views here.
 
 class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
@@ -29,7 +29,13 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data = request.data)
-        serializer.is_valid(raise_exception= True)
+        if not serializer.is_valid():
+            return Response({
+            "status":"error",
+            "message": "Datos de la vendedrora inválidos",
+            "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         self.perform_create(serializer)
         return Response({
             "status":"success",
@@ -41,23 +47,37 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
         parcial = kwargs.pop('partial', False)
         instancia = self.get_object()
         serializer = self.get_serializer(instancia, data=request.data, partial = parcial)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response({
+            "status":"error",
+            "message": "Los datos de la vendedora no fueron actualizados",
+            "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         self.perform_update(serializer)
         return Response({
             "status":"success",
-            "message": "Datos de la vendedora actualizados correctamente.",
+            "message": "Los datos  de la vendedora fueron actualizados",
             "data": serializer.data
-        })
-
-    def destroy(self, request, *arg, **kwargs):
-        instance = self.get_object()
-        email_borrado = instance.email
-        self.perform_destroy(instance)
-        return Response({
-            "status":"success",
-            "message": f"La vendedora con email {email_borrado} ha sido eliminada de forma permanente.",
         }, status=status.HTTP_200_OK)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        email_borrado = instance.email
+        
+        try:
+            self.perform_destroy(instance)
+            return Response({
+                "status": "success",
+                "message": f"La vendedora con email {email_borrado} ha sido eliminada.",
+            }, status=status.HTTP_200_OK)
+            
+        except serializers.ValidationError as e:
+            return Response({
+                "status": "error",
+                "message": "No se pudo eliminar la vendedora",
+                "errors": e.detail 
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 # metodo para los permisos
     
@@ -146,9 +166,16 @@ class AdministratorViewSet(viewsets.ModelViewSet):
 # metodos de personalizacion de respuestas para enviar algo al frotend antes que nada
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data = request.data)
-        serializer.is_valid(raise_exception= True)
+        serializer = self.get_serializer(data = request.data)     
+        if not serializer.is_valid():
+            return Response({
+            "status":"error",
+            "message": "Fallos al registrar al Administrador en el sistema",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
         self.perform_create(serializer)
+
         return Response({
             "status":"success",
             "message": "Administrador registrado exitosamente en el sistema",
@@ -159,8 +186,15 @@ class AdministratorViewSet(viewsets.ModelViewSet):
         parcial = kwargs.pop('partial', False)
         instancia = self.get_object()
         serializer = self.get_serializer(instancia, data=request.data, partial = parcial)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response({
+            "status":"error",
+            "message": "No se pudo actualizar el perfil del administrador.",
+            "error": serializer.error
+            }, status=status.HTTP_200_OK)
+        
         self.perform_update(serializer)
+
         return Response({
             "status":"success",
             "message": "Perfil de administrador actualizado correctamente.",
@@ -170,12 +204,19 @@ class AdministratorViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *arg, **kwargs):
         instance = self.get_object()
         email_borrado = instance.email
-        self.perform_destroy(instance)
-        return Response({
-            "status":"success",
-            "message": f"El administrador {email_borrado} ha sido eliminado y sus vendedoras reasignadas.",
-        }, status=status.HTTP_200_OK)
-
+        try:
+            self.perform_destroy(instance)
+            return Response({
+                "status":"success",
+                "message": f"El administrador {email_borrado} ha sido eliminado y sus vendedoras reasignadas.",
+                }, status=status.HTTP_200_OK)
+        except serializers.ValidationError as e:
+            return Response({
+                "status": "error",
+                "message": "No se pudo eliminar al administrador",
+                "errors": e.detail 
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
     def perform_create(self, serializer):
         """
         guarda el admin y envia correo de bienbenida
@@ -239,5 +280,3 @@ class MiTokenObtainPairSerialeizer(TokenObtainPairSerializer):
             'status': self.user.is_active
         }
         return data
-    
-

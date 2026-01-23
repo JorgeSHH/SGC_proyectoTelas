@@ -1,10 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "../assets/castillo logo.jpg";
-import { getAllScraps } from "../api/tasks.api";
-
-
-
-
 
 // 🟡 DATOS DE EJEMPLO - REEMPLAZA CON LLAMADA A TU BACKEND
 const tiposDeTelasEjemplo = [
@@ -41,7 +36,6 @@ const tiposDeTelasEjemplo = [
 
   // ... más datos
 ];
-
 
 export function RegistroTiposTela() {
   const [tiposDeTelas, setTiposDeTelas] = useState(tiposDeTelasEjemplo); // 🔴 REEMPLAZAR: useState([]) y fetch desde backend
@@ -109,30 +103,6 @@ export function RegistroTiposTela() {
     setTiposDeTelasEditando(null);
     setFormEdit({});
   };
-
-  const [filtro1, setFiltro1] = useState("");
- 
-  
-  useEffect(() => {
-    
-    
-    async function loadProducts() {
-      try {
-        const response = await getAllScraps();
-        setFiltro1(response);
-        console.log(response);
-      } catch (error) {
-        console.error("Error al obtener los productos: ", error);
-      }
-    }
-
-    loadProducts();
-  }, []);
-
-  useEffect(() => {
-    console.log(filtro1);
-    
-  }, [filtro1]);
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gray-900">

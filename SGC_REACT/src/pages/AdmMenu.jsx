@@ -59,7 +59,7 @@ export function AdmMenu() {
               title="Gestión de Retazos"
               description="Control de los Retazos"
               image={scissors}
-               url='http://localhost:5173/registro-retazos'
+              url='http://localhost:5173/registro-retazos'
             />
             <Button
               title="Dashboard Estadístico"

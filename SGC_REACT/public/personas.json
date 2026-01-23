@@ -1,0 +1,241 @@
+
+
+{
+  "status": "OK",
+  "code": 200,
+  "locale": "en_US",
+  "seed": null,
+  "total": 10,
+  "data": [
+    {
+      "id": 1,
+      "firstname": "Jackie",
+      "lastname": "Hamill",
+      "email": "mallory34@gleason.com",
+      "phone": "+19418549000",
+      "birthday": "2016-02-07",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "470 Douglas Club",
+        "streetName": "Daugherty Pine",
+        "buildingNumber": "632",
+        "city": "West Ezra",
+        "zipcode": "73278-8240",
+        "country": "Nauru",
+        "country_code": "NR",
+        "latitude": 36.164075,
+        "longitude": -30.317333
+      },
+      "website": "http:\/\/tromp.info",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 2,
+      "firstname": "Kacie",
+      "lastname": "McDermott",
+      "email": "unikolaus@yahoo.com",
+      "phone": "+15033697813",
+      "birthday": "2009-12-17",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "6543 Cronin Courts",
+        "streetName": "Langosh Village",
+        "buildingNumber": "21434",
+        "city": "West Rickey",
+        "zipcode": "06108-0683",
+        "country": "United Arab Emirates",
+        "country_code": "AE",
+        "latitude": -3.022275,
+        "longitude": -47.44065
+      },
+      "website": "http:\/\/hayes.net",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 3,
+      "firstname": "Dianna",
+      "lastname": "McGlynn",
+      "email": "chloe75@gleichner.biz",
+      "phone": "+16784026763",
+      "birthday": "2020-10-12",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "6191 Cremin Mills Suite 939",
+        "streetName": "Eldred Plaza",
+        "buildingNumber": "133",
+        "city": "Denisport",
+        "zipcode": "72875",
+        "country": "Norway",
+        "country_code": "NO",
+        "latitude": 30.217447,
+        "longitude": -41.759147
+      },
+      "website": "http:\/\/waters.org",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 4,
+      "firstname": "Myrtle",
+      "lastname": "Blanda",
+      "email": "elaina.thiel@kilback.com",
+      "phone": "+14028449008",
+      "birthday": "2024-11-13",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "606 Flo Estate Apt. 372",
+        "streetName": "Garett Track",
+        "buildingNumber": "701",
+        "city": "Michaletown",
+        "zipcode": "97572-4517",
+        "country": "Belize",
+        "country_code": "BZ",
+        "latitude": -18.820976,
+        "longitude": 49.510194
+      },
+      "website": "http:\/\/denesik.com",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 5,
+      "firstname": "Jody",
+      "lastname": "Senger",
+      "email": "rippin.dashawn@hotmail.com",
+      "phone": "+18308602883",
+      "birthday": "2012-10-24",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "86077 Effie Village Apt. 958",
+        "streetName": "McCullough Dale",
+        "buildingNumber": "409",
+        "city": "Lake Verona",
+        "zipcode": "79513",
+        "country": "Switzerland",
+        "country_code": "CH",
+        "latitude": 79.851667,
+        "longitude": 79.732216
+      },
+      "website": "http:\/\/vonrueden.com",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 6,
+      "firstname": "Karlee",
+      "lastname": "Skiles",
+      "email": "ludie.waelchi@hotmail.com",
+      "phone": "+14584197887",
+      "birthday": "2009-04-06",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "92344 Veum Pines",
+        "streetName": "Bettye Pine",
+        "buildingNumber": "355",
+        "city": "South Hestermouth",
+        "zipcode": "56575-3321",
+        "country": "Namibia",
+        "country_code": "NA",
+        "latitude": 9.845735,
+        "longitude": 108.787304
+      },
+      "website": "http:\/\/johns.com",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 7,
+      "firstname": "Mercedes",
+      "lastname": "Hartmann",
+      "email": "dibbert.damian@hotmail.com",
+      "phone": "+18206218533",
+      "birthday": "2008-08-22",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "5819 Hill Locks",
+        "streetName": "Barrows Ports",
+        "buildingNumber": "740",
+        "city": "East Jeradfort",
+        "zipcode": "52256",
+        "country": "Guyana",
+        "country_code": "GY",
+        "latitude": 65.850217,
+        "longitude": -132.626955
+      },
+      "website": "http:\/\/collier.com",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 8,
+      "firstname": "Marlen",
+      "lastname": "Schiller",
+      "email": "rfisher@hotmail.com",
+      "phone": "+16052161328",
+      "birthday": "2008-03-24",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "5492 Joanie Estate",
+        "streetName": "Rosenbaum Squares",
+        "buildingNumber": "5530",
+        "city": "Port Aubreestad",
+        "zipcode": "38631-8552",
+        "country": "Ireland",
+        "country_code": "IE",
+        "latitude": -32.532548,
+        "longitude": -0.162902
+      },
+      "website": "http:\/\/miller.com",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 9,
+      "firstname": "Cortney",
+      "lastname": "Gaylord",
+      "email": "metz.jesse@ondricka.com",
+      "phone": "+17254034197",
+      "birthday": "2010-08-01",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "23708 Lila Street Suite 832",
+        "streetName": "Dashawn Forest",
+        "buildingNumber": "8031",
+        "city": "Durganmouth",
+        "zipcode": "11034",
+        "country": "St. Lucia",
+        "country_code": "LC",
+        "latitude": 2.759458,
+        "longitude": 178.226737
+      },
+      "website": "http:\/\/krajcik.com",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    },
+    {
+      "id": 10,
+      "firstname": "Francesca",
+      "lastname": "Bernier",
+      "email": "tdubuque@kub.net",
+      "phone": "+14012144776",
+      "birthday": "2024-12-10",
+      "gender": "female",
+      "address": {
+        "id": 1,
+        "street": "76870 Chandler Islands",
+        "streetName": "Tremblay Park",
+        "buildingNumber": "258",
+        "city": "Rennershire",
+        "zipcode": "35029",
+        "country": "Slovakia",
+        "country_code": "SK",
+        "latitude": -35.26222,
+        "longitude": 91.329819
+      },
+      "website": "http:\/\/heller.com",
+      "image": "http:\/\/placeimg.com\/640\/480\/people"
+    }
+  ]
+}

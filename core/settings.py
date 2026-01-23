@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 
 
 REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -69,8 +70,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
-
-
 
 
 # Configuración  para personalizar el panel
@@ -173,6 +172,17 @@ STATIC_URL = 'static/'
 
 # Si quieres que el navegador pueda enviarte cookies o tokens de sesión
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:3000']
+CORS_ALLOW_ALL_ORIGINS = True  # o usa CORS_ALLOWED_ORIGINS con tu frontend
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",  # 
+    "POST",
+    "PUT",
+]
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

@@ -185,6 +185,11 @@ CORS_ALLOW_METHODS = [
 ]
 
 
+# configuaracion para generar qr
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+#configuaracion del correo
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

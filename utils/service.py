@@ -1,6 +1,9 @@
-import requests
+import requests, os
+from dotenv import load_dotenv
 
-API_DOLLAR_URL = "https://api-bcv-nine.vercel.app/dolar"
+# Carga las variables del archivo .env al entorno
+load_dotenv()
+API_DOLLAR_URL = os.getenv('API_LINK')
 
 def get_value_dollar():
     try:

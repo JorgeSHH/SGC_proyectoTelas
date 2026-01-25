@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import FabricScrapViewSet, FabricTypeViewSet
+from .views import FabricScrapViewSet, FabricTypeViewSet, ServeQRView
 
 # Creamos el router
 router = DefaultRouter()
@@ -13,4 +13,5 @@ router.register(r'scraps', FabricScrapViewSet, basename='fabric-scrap')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('qrs/<str:tipo>/<int:pk>/', ServeQRView.as_view(), name='serve_qr'),
 ]

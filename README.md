@@ -13,5 +13,4 @@
 
 - los numero decimales se deben de colocar con puntos no con comas, y maximo dos decimales ej, 1.22 o 32.45
 
-- estblcer un encabezado para todos los JSON
 

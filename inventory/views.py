@@ -12,6 +12,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from audit.mixins import AuditMixins
 from users.models import Administrator
+from .utils import generar_codigo_qr
+from django.http import FileResponse, Http404
+from rest_framework.views import APIView
+from django.conf import settings
+import os 
+
 
 class FabricScrapViewSet(viewsets.ModelViewSet, AuditMixins):
     queryset = Fabric_Scrap.objects.all() 
@@ -86,10 +92,16 @@ class FabricScrapViewSet(viewsets.ModelViewSet, AuditMixins):
     def perform_create(self, serializer):
         user = self.request.user
 
-        serializer.save(
+        retazo = serializer.save(
             created_by=user,
             created_by_role=getattr(user, 'role', 'no_role') 
         )
+
+        nombre_qr = generar_codigo_qr(retazo.fabric_scrap_id, prefijo="retazo")
+
+        retazo.qr = nombre_qr
+        retazo.save()
+        serializer.instance = retazo
 
     # ganchos para guardar en el log 
 
@@ -150,7 +162,7 @@ class FabricTypeViewSet(viewsets.ModelViewSet):
                 "errors": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        serializer.save()
+        self.perform_create(serializer)
         return Response({
             "status": "success",
             "message": "Nuevo tipo de tela creado",
@@ -194,3 +206,26 @@ class FabricTypeViewSet(viewsets.ModelViewSet):
                     "message": "Acción bloqueada, No se puede eliminar porque existen retazos asociados a este tipo de tela.",
                     "errors": {"detail": str(e)}
                 }, status=status.HTTP_400_BAD_REQUEST)
+        
+    def perform_create(self, serializer):
+        tipo_tela = serializer.save()
+
+        nombre_qr = generar_codigo_qr(tipo_tela.Fabric_Type_id, prefijo= "tipo")
+
+        tipo_tela.qr = nombre_qr
+        tipo_tela.save()
+        serializer.instance = tipo_tela
+
+class ServeQRView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, tipo, pk):
+
+        nombre_archivo = f"qr_{tipo}_{pk}.png"
+        ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'qrs', nombre_archivo)
+
+        if os.path.exists(ruta_archivo):
+            return FileResponse(open(ruta_archivo, 'rb'), content_type ="image/png")
+        
+        raise Http404("El QR no existe.")
+    

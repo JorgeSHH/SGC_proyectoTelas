@@ -53,10 +53,8 @@ INSTALLED_APPS = [
     'audit',
     'utils',
     'drf_spectacular', #documentacion de la api
-
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-
 ]
 
 
@@ -172,7 +170,6 @@ STATIC_URL = 'static/'
 
 # Si quieres que el navegador pueda enviarte cookies o tokens de sesión
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:3000']
 CORS_ALLOW_ALL_ORIGINS = True  # o usa CORS_ALLOWED_ORIGINS con tu frontend
 
 CORS_ALLOW_METHODS = [

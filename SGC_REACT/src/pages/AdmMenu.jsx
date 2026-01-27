@@ -5,14 +5,12 @@ import { Footer } from "../components/footer";
 import People from "../assets/person-check-fill.svg";
 import fabricMaterial from "../assets/fabric-material-svgrepo-com (2).svg";
 
-
 import scissors from "../assets/scissors-5-svgrepo-com.svg";
 
 import Statistics from "../assets/statistics-svgrepo-com.svg";
 
 
-    
-
+<Navbar />;
 
 export function AdmMenu() {
 
@@ -48,23 +46,23 @@ export function AdmMenu() {
 
           {/* Grid responsive */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Button 
-              title="Gestión de Vendedoras" 
+            <Button
+              title="Gestión de Vendedoras"
               description="Control de Vendedoras"
               image={People}
-              url='http://localhost:5173/gestion-ven'
+              url="http://localhost:5173/gestion-ven"
             />
             <Button
               title="Gestión de Telas"
               description="Control de las Telas"
               image={fabricMaterial}
-              url='http://localhost:5173/registro-tipos-tela'
+              url="http://localhost:5173/registro-tipos-tela"
             />
-            <Button 
+            <Button
               title="Gestión de Retazos"
               description="Control de los Retazos"
               image={scissors}
-              url='http://localhost:5173/registro-retazos'
+              url="http://localhost:5173/gestion-retazos"
             />
             <Button
               title="Dashboard Estadístico"

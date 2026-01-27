@@ -23,7 +23,6 @@ class Fabric_Scrap(models.Model):
 
     fabric_scrap_id = models.AutoField(unique=True, primary_key=True)
     fabric_type = models.ForeignKey('Fabric_Type', on_delete=models.PROTECT, related_name="scraps_type")
-
     length_meters = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal("0.15"))])
     width_meters = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal("0.15"))])
     description = models.TextField(blank=True, help_text="Descripción opcional del retazo")

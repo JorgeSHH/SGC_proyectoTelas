@@ -11,63 +11,58 @@ const fakerApi = axios.create({
 axios.defaults.withCredentials = true;
 
 const scrapsApi = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/inventory/scraps/" // ← sin espacio
+  baseURL: "http://127.0.0.1:8000/api/inventory/scraps/",
+});
+
+const typesApi = axios.create({
+  baseURL: "http://127.0.0.1:8000/api/inventory/types/",
 });
 
 const salesWomanApi = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/users/saleswoman/" // ← sin espacio
+  baseURL: "http://127.0.0.1:8000/api/users/saleswoman/",
 });
 
-const AdminApi = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/users/administrators/" // ← sin espacio
-});
+salesWomanApi.interceptors.request.use(
+  (config) => {
+    // 1. Leemos el token del localStorage
+    const token = localStorage.getItem("access");
 
-AdminApi.interceptors.request.use((cfg) => {
-  const token = localStorage.getItem("access");
-  if (token) cfg.headers.Authorization = `Bearer ${token}`;
-  return cfg;
-});
-
-export const updateAdminApi = async (id, payload) => {
-  const { data } = await AdminApi.patch(`${id}/`, payload);
-  return data;
-};
-
-salesWomanApi.interceptors.request.use((cfg) => {
-  const token = localStorage.getItem("access");
-  if (token) cfg.headers.Authorization = `Bearer ${token}`;
-  return cfg;
-});
-
-export const updateSalesWoman = async (id, payload) => {
-  const { data } = await salesWomanApi.patch(`${id}/`, payload);
-  return data;
-};
+    // 2. Si el token existe, lo inyectamos en los headers
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    // 3. IMPORTANTE: Devolvemos la configuración modificada
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
 export const getAllScraps = async () => {
   try {
-    const { data } = await scrapsApi.get("/");
-    return data;
+    const varScrap = await scrapsApi.get("/");
+    return varScrap.data;
   } catch (error) {
-    console.error(error);
+    console.log(error);
+  }
+};
+
+export const getAllTypes = async () => {
+  try {
+    const varTypes = await typesApi.get("/");
+    return varTypes.data;
+  } catch (error) {
+    console.log(error);
   }
 };
 
 export const getAllSalesWoman = async () => {
   try {
-    const { data } = await salesWomanApi.get("/");
-    return data;
+    const varSalesWoman = await salesWomanApi.get("/");
+    return varSalesWoman.data;
   } catch (error) {
-    console.error(error);
-  }
-};
-
-export const getAllAdmin = async () => {
-  try {
-    const { data } = await AdminApi.get("/");
-    return data;
-  } catch (error) {
-    console.error(error);
+    console.log(error);
   }
 };
 

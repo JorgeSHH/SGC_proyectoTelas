@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ButtonExp } from "../components/ButtonExp";
-
+import { Navbar } from "../components/Navbar";
+<Navbar />
 // 🔴 REEMPLAZAR: fetch real desde tu backend
 const RetazosEjemplo = [
   {

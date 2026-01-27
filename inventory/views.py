@@ -16,6 +16,9 @@ from .utils import generar_codigo_qr
 from django.http import FileResponse, Http404
 from rest_framework.views import APIView
 from django.conf import settings
+from django.db.models import Count
+from rest_framework.decorators import action
+from django.db.models.functions import TruncWeek
 import os 
 
 
@@ -229,3 +232,40 @@ class ServeQRView(APIView):
         
         raise Http404("El QR no existe.")
     
+
+class InventarioDashboardViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated, IsAdministrator]
+
+    @action(detail=False, methods=['get'])
+    def metrics(self, request):
+        # Retazos agrupados por nombre de tipo de tela
+        scraps_by_type = Fabric_Scrap.objects.values('fabric_type__name').annotate(
+            total=Count('fabric_scrap_id')
+        ).order_by('-total')
+
+        # Ranking histórico de vendedoras
+        ranking_global = Fabric_Scrap.objects.filter(
+            created_by_role='saleswoman'
+        ).values('created_by__username').annotate(
+            total=Count('fabric_scrap_id')
+        ).order_by('-total')
+
+        # Progreso semanal por vendedora
+        progreso_semanal = Fabric_Scrap.objects.filter(
+            created_by_role='saleswoman'
+        ).annotate(
+            semana=TruncWeek('registered_at')
+        ).values('semana', 'created_by__username').annotate(
+            total=Count('fabric_scrap_id')
+        ).order_by('-semana')
+
+        return Response({
+            "status": "success",
+            "data1": {
+                "scraps_by_type": scraps_by_type
+            },
+            "data2": {
+                "ranking_global": ranking_global,
+                "progreso_semanal": progreso_semanal
+            }
+        })

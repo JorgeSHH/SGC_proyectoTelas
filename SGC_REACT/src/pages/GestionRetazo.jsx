@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "../assets/QR.png";
-import { useState } from "react";
 import { ButtonExp } from "../components/ButtonExp";
 import { Navbar } from "../components/Navbar";
 <Navbar />

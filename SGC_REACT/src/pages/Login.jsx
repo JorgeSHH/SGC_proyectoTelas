@@ -2,6 +2,7 @@ import { useState } from 'react'; // ❌ ESTO ES LO IMPORTANTE: useState es de R
 import axios from 'axios';
 import Logo from "../assets/castillo logo.jpg";
 import { useNavigate } from 'react-router-dom';
+import { Footer } from "../components/footer"  
 // Asegúrate de importar tu Logo aquí
 // import Logo from './path/to/logo.png';
 
@@ -136,6 +137,7 @@ export const Login = () => {
           </form>
         </div>
       </div>
+      <Footer/>
     </div>
   );
 };

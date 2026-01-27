@@ -22,6 +22,21 @@ const salesWomanApi = axios.create({
   baseURL: "http://127.0.0.1:8000/api/users/saleswoman/",
 });
 
+const AdminApi = axios.create({
+  baseURL: "http://127.0.0.1:8000/api/users/administrators/" // ← sin espacio
+});
+
+AdminApi.interceptors.request.use((cfg) => {
+  const token = localStorage.getItem("access");
+  if (token) cfg.headers.Authorization = `Bearer ${token}`;
+  return cfg;
+});
+
+export const updateAdminApi = async (id, payload) => {
+  const { data } = await AdminApi.patch(`${id}/`, payload);
+  return data;
+};
+
 salesWomanApi.interceptors.request.use(
   (config) => {
     // 1. Leemos el token del localStorage
@@ -65,6 +80,17 @@ export const getAllSalesWoman = async () => {
     console.log(error);
   }
 };
+
+export const getAllAdmin = async () => {
+  try {
+    const { data } = await AdminApi.get("/");
+    return data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
 
 export const getFakerApi = () => fakerApi.get("/");
 export const getAllTasks = () => tasksApi.get("/");

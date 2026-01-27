@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ButtonExp } from "../components/ButtonExp";
 // import { getFakerApi } from "../api/tasks.api";
 import { getAllSalesWoman } from "../api/tasks.api";
+import { Navbar } from "../components/Navbar";
 
 // 🟡 DATOS DE TU BACKEND
 
@@ -224,6 +225,9 @@ const [vendedoraEditando, setVendedoraEditando] = useState(null);
 
   
   return (
+    <>
+      <Navbar />
+      
     <div className="min-h-screen flex flex-col relative bg-gray-900">
       {/* Fondo idéntico a VenMenu */}
       <div
@@ -488,7 +492,7 @@ const [vendedoraEditando, setVendedoraEditando] = useState(null);
           </div>
         </div>
       )}
-    </div>
+    </div></>
   );
 }
 

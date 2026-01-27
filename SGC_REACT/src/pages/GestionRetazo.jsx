@@ -1,5 +1,23 @@
+
 import React, { useState, useEffect } from "react";
 import Image from "../assets/QR.png";
+import { useState } from "react";
+import { ButtonExp } from "../components/ButtonExp";
+import { Navbar } from "../components/Navbar";
+<Navbar />
+// 🔴 REEMPLAZAR: fetch real desde tu backend
+const RetazosEjemplo = [
+  {
+    id: "07",
+    Vendedora: "Maria",
+    tipoDeTela: "Algodón",
+    anchura: "30",
+    largo: "10",
+    Descripcion: "Tela de prueba para la gestión del componente administrativo",
+    status: "Activo",
+    precioHistorico: "30",
+  },
+];
 
 export function GestionRetazo() {
   const [retazos, setRetazos] = useState([]);

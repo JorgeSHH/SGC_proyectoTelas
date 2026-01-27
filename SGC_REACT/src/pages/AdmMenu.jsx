@@ -1,5 +1,5 @@
 import React from "react";
-import { Navbar } from "../components/navbar";
+import { Navbar } from "../components/Navbar";
 import { Button } from "../components/Button";
 import { Footer } from "../components/footer";
 import People from "../assets/person-check-fill.svg";
@@ -9,9 +9,17 @@ import scissors from "../assets/scissors-5-svgrepo-com.svg";
 
 import Statistics from "../assets/statistics-svgrepo-com.svg";
 
+
 <Navbar />;
+
 export function AdmMenu() {
+
+
+
   return (
+  <>
+< Navbar />
+
     <div className="min-h-screen flex flex-col relative bg-gray-900">
       <div
         className="absolute inset-0 z-0"
@@ -64,8 +72,10 @@ export function AdmMenu() {
           </div>
         </section>
       </main>
+      <Footer />;
     </div>
+    </>
   );
 }
-<Footer />;
+
 export default AdmMenu;

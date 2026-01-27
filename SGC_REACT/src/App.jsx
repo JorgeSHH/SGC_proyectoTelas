@@ -5,7 +5,7 @@ import { Navigation } from "./components/Navigation";
 import { Toaster } from "react-hot-toast";
 import { AdmMenu } from "./pages/AdmMenu";
 import { VenMenu } from "./pages/VenMenu";
-import { Navbar } from "./components/navbar";
+
 import { Footer } from "./components/footer";
 import { RegistroRetazos } from "./pages/RegistroRetazos";
 import { ConsultaVen } from "./pages/ConsultaVen";
@@ -17,7 +17,7 @@ import { GestionRetazo } from "./pages/GestionRetazo";
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
+   
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/adm-menu" element={<AdmMenu />} />

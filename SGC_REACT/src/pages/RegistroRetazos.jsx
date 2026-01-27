@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-
+import { NavbarVen } from "../components/NavbarVen";
 import { ButtonG } from "../components/ButtonG";
 
+
+
 export function RegistroRetazos() {
+
+
+  
   const [formData, setFormData] = useState({
     tipoDeTela: "",
     id: "",
@@ -28,6 +33,10 @@ export function RegistroRetazos() {
   };
 
   return (
+    <>
+    <NavbarVen/>
+
+
     <div className="min-h-screen flex flex-col relative bg-gray-900">
       <div
         className="absolute inset-0 z-0"
@@ -174,7 +183,7 @@ export function RegistroRetazos() {
           </form>
         </div>
       </main>
-    </div>
+    </div>    </>
   );
 }
 

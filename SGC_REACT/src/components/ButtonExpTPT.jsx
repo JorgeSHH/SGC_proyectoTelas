@@ -24,7 +24,7 @@ export function ButtonExp() {
         }
       };
 
-      const response = await axios.get('http://127.0.0.1:8000/api/users/saleswoman/', config);
+      const response = await axios.get('http://127.0.0.1:8000/api/inventory/scraps/', config);
       return response.data;
       
     } catch (error) {
@@ -32,7 +32,7 @@ export function ButtonExp() {
       if (error.response && error.response.status === 401) {
         alert("Error 401: No autorizado. Tu token podría haber expirado.");
       } else {
-        alert("Error al obtener los datos de vendedoras.");
+        alert("Error al obtener los datos de los retazos.");
       }
       return [];
     }
@@ -45,8 +45,8 @@ export function ButtonExp() {
     if (data && data.length > 0) {
       const worksheet = XLSX.utils.json_to_sheet(data);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Vendedoras");
-      XLSX.writeFile(workbook, "Vendedoras.xlsx");
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Retazos");
+      XLSX.writeFile(workbook, "Retazos.xlsx");
     }
 
     setLoading(false);
@@ -72,7 +72,7 @@ export function ButtonExp() {
         styles: { fontSize: 8 },
       });
 
-      doc.save("Vendedoras.pdf");
+      doc.save("Retazos.pdf");
     }
 
     setLoading(false);

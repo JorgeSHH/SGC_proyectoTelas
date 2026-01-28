@@ -68,6 +68,7 @@ export function AdmMenu() {
               title="Dashboard Estadístico"
               description="Gráficos de Interés"
               image={Statistics}
+              url="http://localhost:5173/dashboard"
             />
           </div>
         </section>

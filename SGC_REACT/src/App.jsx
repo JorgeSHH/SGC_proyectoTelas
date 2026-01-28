@@ -5,7 +5,6 @@ import { Navigation } from "./components/Navigation";
 import { Toaster } from "react-hot-toast";
 import { AdmMenu } from "./pages/AdmMenu";
 import { VenMenu } from "./pages/VenMenu";
-
 import { Footer } from "./components/footer";
 import { RegistroRetazos } from "./pages/RegistroRetazos";
 import { ConsultaVen } from "./pages/ConsultaVen";
@@ -13,11 +12,11 @@ import { Login } from "./pages/Login";
 import { GestionVen } from "./pages/GestionVen";
 import { RegistroTiposTela } from "./pages/RegistroTiposTela";
 import { GestionRetazo } from "./pages/GestionRetazo";
+import { Dashboard } from "./pages/Dashboard";
 
 function App() {
   return (
     <BrowserRouter>
-   
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/adm-menu" element={<AdmMenu />} />
@@ -30,6 +29,7 @@ function App() {
         <Route path="/tasks-create" element={<TaskFormPage />} />
         <Route path="/tasks/:id" element={<TaskFormPage />} />
         <Route path="/gestion-ven" element={<GestionVen />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/registro-tipos-tela" element={<RegistroTiposTela />} />
       </Routes>
       <Toaster />

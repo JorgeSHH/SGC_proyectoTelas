@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
-// Importamos componentes de Recharts (Hemos eliminado ResponsiveContainer del import)
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianAxis,
-  LineChart,
-  Line,
-} from "recharts";
-
+import Chart from "chart.js/auto";
+//instalar npm install chart.js
 export function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("access");
 
-  // Colores personalizados
-  const COLORS = ["#e30713", "#ec4444", "#ff6b6b", "#8a1c1c", "#1e1e2a", "#3a3b3c"];
+  // Referencias a los Canvas
+  const vendedorCanvasRef = React.useRef(null); // Gráfico 1: Barras (Vendedoras)
+  const tipoTelaCanvasRef = React.useRef(null); // Gráfico 2: Barras (Tipos de Tela)
+  const progresoCanvasRef = React.useRef(null); // Gráfico 3: Línea
+
+  // Referencias a las instancias para destruirlas
+  const vendedorChartInstance = React.useRef(null);
+  const tipoTelaChartInstance = React.useRef(null);
+  const progresoChartInstance = React.useRef(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -55,39 +48,136 @@ export function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  // Preparar datos
-  const scrapsByTypeData = dashboardData?.data1?.scraps_by_type?.map((item) => ({
-    name: item.fabric_typename,
-    value: item.total,
-  })) || [];
+  useEffect(() => {
+    if (!loading && dashboardData) {
+      
+      // --- 1. DATOS PARA GRÁFICA BARRAS: VENDEDORAS (Nombre vs Retazos) ---
+      // ✅ USAMOS LA CLAVE CORRECTA: created_by__username
+      const vendedorData = dashboardData.data2?.ranking_global || [];
+      const vendedorLabels = vendedorData.map((item) => item.created_by__username);
+      const vendedorValues = vendedorData.map((item) => Number(item.total) || 0);
 
-  const rankingData = dashboardData?.data2?.ranking_global?.map((item) => ({
-    name: item.created_byusername,
-    total: item.total,
-  })) || [];
+      // --- 2. DATOS PARA GRÁFICA BARRAS: TIPOS DE TELA (Nombre vs Retazos) ---
+      // ✅ USAMOS LA CLAVE CORRECTA: fabric_type__name
+      const telaData = dashboardData.data1?.scraps_by_type || [];
+      const telaLabels = telaData.map((item) => item.fabric_type__name);
+      const telaValues = telaData.map((item) => Number(item.total) || 0);
 
-  const weeklyProgressRaw = dashboardData?.data2?.progreso_semanal || [];
-  
-  const weeklyData = weeklyProgressRaw.reduce((acc, curr) => {
-    const dateKey = curr.semana.split("T")[0];
-    if (acc[dateKey]) {
-      acc[dateKey] += curr.total;
-    } else {
-      acc[dateKey] = curr.total;
+      // --- 3. DATOS PARA GRÁFICA LÍNEA: PROGRESO SEMANAL ---
+      const progresoData = dashboardData.data2?.progreso_semanal || [];
+      const progresoGrouped = progresoData.reduce((acc, curr) => {
+        // Extraemos la fecha limpia
+        const dateKey = curr.semana ? curr.semana.split("T")[0] : "Desconocido";
+        const val = Number(curr.total) || 0;
+        
+        if (acc[dateKey]) {
+          acc[dateKey] += val;
+        } else {
+          acc[dateKey] = val;
+        }
+        return acc;
+      }, {});
+
+      const lineLabels = Object.keys(progresoGrouped);
+      const lineValues = Object.values(progresoGrouped);
+
+      // Configuración visual global
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: "white" } },
+          tooltip: {
+            backgroundColor: "#1e1e2a",
+            titleColor: "#fff",
+            bodyColor: "#fff"
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "#4a4b4c" }
+          },
+          y: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "#4a4b4c" },
+            beginAtZero: true
+          }
+        }
+      };
+
+      // --- CREACIÓN DE GRÁFICAS ---
+
+      // GRÁFICA 1: BARRAS (Vendedoras)
+      if (vendedorCanvasRef.current) {
+        if (vendedorChartInstance.current) vendedorChartInstance.current.destroy();
+        vendedorChartInstance.current = new Chart(vendedorCanvasRef.current, {
+          type: "bar",
+          data: {
+            labels: vendedorLabels,
+            datasets: [{
+              label: "Retazos Registrados",
+              data: vendedorValues,
+              backgroundColor: "#e30713",
+              borderRadius: 8
+            }]
+          },
+          options: commonOptions
+        });
+      }
+
+      // GRÁFICA 2: BARRAS (Tipos de Tela)
+      if (tipoTelaCanvasRef.current) {
+        if (tipoTelaChartInstance.current) tipoTelaChartInstance.current.destroy();
+        tipoTelaChartInstance.current = new Chart(tipoTelaCanvasRef.current, {
+          type: "bar",
+          data: {
+            labels: telaLabels,
+            datasets: [{
+              label: "Retazos por Tipo",
+              data: telaValues,
+              backgroundColor: "#ec4444",
+              borderRadius: 8
+            }]
+          },
+          options: commonOptions
+        });
+      }
+
+      // GRÁFICA 3: LÍNEA (Progreso)
+      if (progresoCanvasRef.current) {
+        if (progresoChartInstance.current) progresoChartInstance.current.destroy();
+        progresoChartInstance.current = new Chart(progresoCanvasRef.current, {
+          type: "line",
+          data: {
+            labels: lineLabels,
+            datasets: [{
+              label: "Retazos Agregados",
+              data: lineValues,
+              borderColor: "#ff6b6b",
+              backgroundColor: "rgba(255, 107, 107, 0.2)",
+              borderWidth: 3,
+              tension: 0.3,
+              pointRadius: 5,
+              fill: true
+            }]
+          },
+          options: commonOptions
+        });
+      }
     }
-    return acc;
-  }, {});
 
-  const chartWeeklyData = Object.keys(weeklyData).map((date) => ({
-    name: date,
-    Retazos: weeklyData[date],
-  }));
+    return () => {
+      if (vendedorChartInstance.current) vendedorChartInstance.current.destroy();
+      if (tipoTelaChartInstance.current) tipoTelaChartInstance.current.destroy();
+      if (progresoChartInstance.current) progresoChartInstance.current.destroy();
+    };
+  }, [loading, dashboardData]);
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen flex flex-col relative bg-gray-900">
-        {/* Fondo */}
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -104,7 +194,7 @@ export function Dashboard() {
                 Dashboard de Métricas
               </h1>
               <p className="text-gray-300 text-lg">
-                Análisis de retazos, ranking de vendedoras y progreso semanal
+                Análisis de vendedoras y tipos de tela
               </p>
             </div>
 
@@ -115,101 +205,33 @@ export function Dashboard() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
-                {/* --- TARJETA 1: Retazos por Tipo --- */}
-                <div className="bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 flex flex-col items-center">
-                  <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-600 pb-2 w-full">
-                    Distribución de Retazos por Tipo
+                {/* GRÁFICA 1: RANKING VENDEDORAS (BARRAS) */}
+                <div className="bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 flex flex-col items-center h-[400px]">
+                  <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-600 pb-2 w-full text-center">
+                    Ranking por Vendedora
                   </h3>
-                  {/* Se usa un div contenedor con overflow para manejar el tamaño fijo del gráfico */}
-                  <div style={{ width: "100%", height: "320px", display: "flex", justifyContent: "center" }}>
-                    {scrapsByTypeData.length > 0 ? (
-                      // Se eliminó ResponsiveContainer. Se asigna width y height directo al PieChart
-                      <PieChart width={400} height={300}>
-                        <Pie
-                          data={scrapsByTypeData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) =>
-                            `${name} ${(percent * 100).toFixed(0)}%`
-                          }
-                          outerRadius={100}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {scrapsByTypeData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "#1e1e2a", border: "none", borderRadius: "8px", color: "#fff" }}
-                        />
-                      </PieChart>
-                    ) : (
-                      <p className="text-gray-400 text-center pt-10">No hay datos de tipos.</p>
-                    )}
+                  <div className="w-full h-full relative">
+                    <canvas ref={vendedorCanvasRef}></canvas>
                   </div>
                 </div>
 
-                {/* --- TARJETA 2: Ranking Global --- */}
-                <div className="bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 flex flex-col items-center">
-                  <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-600 pb-2 w-full">
-                    Ranking Global de Vendedoras
+                {/* GRÁFICA 2: RETAZOS POR TIPO DE TELA (BARRAS) */}
+                <div className="bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 flex flex-col items-center h-[400px]">
+                  <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-600 pb-2 w-full text-center">
+                    Retazos por Tipo de Tela
                   </h3>
-                  <div style={{ width: "100%", height: "320px", display: "flex", justifyContent: "center" }}>
-                    {rankingData.length > 0 ? (
-                       <BarChart width={600} height={300} data={rankingData}>
-                        <CartesianAxis stroke="#4a4b4c" />
-                        <XAxis
-                          dataKey="name"
-                          stroke="#9ca3af"
-                          fontSize={12}
-                        />
-                        <YAxis stroke="#9ca3af" />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "#1e1e2a", border: "none", borderRadius: "8px", color: "#fff" }}
-                        />
-                        <Bar dataKey="total" fill="#e30713" radius={[8, 8, 0, 0]} />
-                      </BarChart>
-                    ) : (
-                      <p className="text-gray-400 text-center pt-10">No hay datos de ranking.</p>
-                    )}
+                  <div className="w-full h-full relative">
+                    <canvas ref={tipoTelaCanvasRef}></canvas>
                   </div>
                 </div>
 
-                {/* --- TARJETA 3: Progreso Semanal --- */}
-                <div className="lg:col-span-2 bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 flex flex-col items-center">
-                  <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-600 pb-2 w-full">
-                    Progreso Semanal (Retazos Registrados)
+                {/* GRÁFICA 3: PROGRESO SEMANAL (LÍNEA) */}
+                <div className="lg:col-span-2 bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 flex flex-col items-center h-[400px]">
+                  <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-600 pb-2 w-full text-center">
+                    Progreso Semanal
                   </h3>
-                  <div style={{ width: "100%", height: "320px", display: "flex", justifyContent: "center" }}>
-                    {chartWeeklyData.length > 0 ? (
-                      <LineChart width={800} height={300} data={chartWeeklyData}>
-                        <CartesianAxis stroke="#4a4b4c" />
-                        <XAxis
-                          dataKey="name"
-                          stroke="#9ca3af"
-                          fontSize={12}
-                        />
-                        <YAxis stroke="#9ca3af" />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "#1e1e2a", border: "none", borderRadius: "8px", color: "#fff" }}
-                        />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="Retazos"
-                          stroke="#ec4444"
-                          strokeWidth={3}
-                          activeDot={{ r: 8 }}
-                        />
-                      </LineChart>
-                    ) : (
-                      <p className="text-gray-400 text-center pt-10">No hay datos de progreso.</p>
-                    )}
+                  <div className="w-full h-full relative">
+                    <canvas ref={progresoCanvasRef}></canvas>
                   </div>
                 </div>
 

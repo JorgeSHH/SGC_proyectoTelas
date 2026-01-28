@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../index.css";
 import miLogo from "../assets/castillo logo.jpg";
 import { getAllAdmin } from "../api/tasks.api";
+// Importamos el hook useNavigate
 
 export function Navbar() {
   const [adminData, setAdminData] = useState(null);

@@ -28,6 +28,7 @@ urlpatterns = [
 
 
     path('api/inventory/', include('inventory.urls')), 
+    path('api/utils/', include('utils.urls')),
 
     path('api/documen/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'), #ver la documentacion
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'), #ver la documentacion de otra froma

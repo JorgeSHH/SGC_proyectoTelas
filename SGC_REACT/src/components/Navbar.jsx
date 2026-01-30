@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../index.css";
 import miLogo from "../assets/castillo logo.jpg";
 import { getAllAdmin } from "../api/tasks.api";
+// Importamos el hook useNavigate
 
 export function Navbar() {
   const [adminData, setAdminData] = useState(null);
@@ -137,10 +138,10 @@ export function Navbar() {
             <a href="http://localhost:5173/registro-tipos-tela" className="text-gray-600 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold  transition">
               Gestión de Telas
             </a>
-            <a href="http://localhost:5173/registro-retazos" className="text-gray-600 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold  transition">
+            <a href="http://localhost:5173/gestion-retazos" className="text-gray-600 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold  transition">
               Gestión de Retazos
             </a>
-            <a href="#" className="text-gray-600 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold  transition">
+            <a href="http://localhost:5173/dashboard" className="text-gray-600 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold  transition">
               Dashboard Estadístico
             </a>
           </div>
@@ -165,14 +166,14 @@ export function Navbar() {
             </a>
 
             {/* Icono Retazos */}
-            <a href="http://localhost:5173/registro-retazos" className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ec4444]">
+            <a href="http://localhost:5173/gestion-retazos" className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ec4444]">
               <svg fill="#000000" height="40px" width="40px" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297 297">
                 <path d="m293.489,62.166c-3.314-2.909-8.151-3.28-11.872-0.914l-126.371,80.373 80.372-126.372c2.366-3.72 1.994-8.557-0.914-11.872-2.906-3.315-7.652-4.314-11.652-2.454-67.283,31.326-95.476,79.727-107.28,114.814-8.011,23.812-9.759,44.681-9.91,57.29l-11.01,7.002c-0.666-1.916-1.554-3.77-2.67-5.524l-3.837-6.031c-7.783-12.24-24.074-15.863-36.312-8.08l-39.707,25.253c-5.929,3.77-10.035,9.624-11.561,16.483-1.526,6.858-0.29,13.901 3.48,19.83l.001,.002 3.837,6.031c3.77,5.929 9.624,10.035 16.483,11.561 1.916,0.426 3.847,0.637 5.765,0.637 4.943,0 9.793-1.401 14.065-4.118l46.212-29.816-29.556,46.472c-7.784,12.238-4.16,28.528 8.079,36.312l6.032,3.837h0.001c4.272,2.718 9.122,4.119 14.066,4.119 1.917,0 3.848-0.21 5.763-0.637 6.859-1.526 12.712-5.631 16.484-11.561l25.252-39.706c7.784-12.238 4.161-28.528-8.079-36.313l-6.032-3.836c-1.861-1.184-3.831-2.117-5.87-2.795l7.09-11.148c12.608-0.149 33.466-1.893 57.29-9.907 35.087-11.804 83.488-39.997 114.814-107.281 1.861-3.997 0.862-8.744-2.453-11.651zm-158.623,59.088c11.511-33.648 32.411-61.304 62.325-82.575l-68.945,108.404c1.379-7.877 3.472-16.628 6.62-25.829zm-101.122,98.071c-1.454,0.926-3.181,1.228-4.864,0.854-1.682-0.374-3.118-1.381-4.043-2.837l-3.838-6.032c-0.924-1.454-1.227-3.18-0.853-4.862 0.374-1.682 1.381-3.118 2.835-4.043l39.706-25.253c3.003-1.911 6.998-1.021 8.908,1.982l3.837,6.031c0.925,1.455 1.227,3.183 0.853,4.864-0.374,1.683-1.381,3.118-2.835,4.044l-39.706,25.252zm86.235,15.118l-25.252,39.707c-0.926,1.454-2.361,2.461-4.043,2.835-1.683,0.374-3.409,0.07-4.864-0.854h0.001l-6.033-3.837c-3.002-1.91-3.891-5.905-1.981-8.908l25.252-39.707c0.926-1.454 2.361-2.461 4.043-2.835 1.686-0.371 3.411-0.07 4.864,0.855l6.033,3.836c3,1.91 3.889,5.905 1.98,8.908zm55.638-72.439c-9.202,3.148-17.953,5.241-25.83,6.62l108.404-68.946c-21.27,29.914-48.927,50.815-82.574,62.326z"/>
               </svg>
             </a>
 
             {/* Icono Dashboard */}
-            <a href="#" className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ec4444]">
+            <a href="http://localhost:5173/dashboard" className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ec4444]">
               <svg width="40px" height="40px" viewBox="0 0 1024 1024" fill="black" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M521.58 516.763v-472.816c250.725 22.642 450.175 222.092 472.817 472.817h-472.816zM918.229 593.091h-435.436c-21.963 0-39.769-17.805-39.769-39.769 0 0 0 0 0 0v-435.463c-222.914 20.121-397.682 207.273-397.682 435.436 0 241.605 195.898 437.452 437.451 437.451 228.163 0 415.339-174.715 435.436-397.657z" /></svg>
             </a>
           </div>

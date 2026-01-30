@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
-import Image from "../assets/QR.png";
+// ... otras importaciones ...
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { NavbarVen } from "../components/NavbarVen";
 import toast, { Toaster } from "react-hot-toast"; // Importación agregada
+import { SecureImage } from "../components/SecureImage"; 
 
 export function ConsultaVen() {
   // --- Estados existentes ---
@@ -337,13 +338,14 @@ export function ConsultaVen() {
                         {retazo.description}
                       </p>
 
+                      {/* --- USO DEL COMPONENTE SEGURO --- */}
                       <div className="mt-4 flex justify-center">
-                        <img
-                          src={Image}
-                          alt="QR"
-                          className="w-20 h-20 rounded-lg opacity-80"
+                        <SecureImage 
+                          id={retazo.fabric_scrap_id} 
+                          className="w-80 h-80 rounded-lg opacity-80 object-contain" 
                         />
                       </div>
+                      {/* --------------------------------- */}
                     </div>
                   </div>
                 );

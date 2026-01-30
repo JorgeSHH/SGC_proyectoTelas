@@ -1,13 +1,12 @@
-import { useState } from "react"; // ❌ ESTO ES LO IMPORTANTE: useState es de React, no de axios
+import { useState } from "react";
 import axios from "axios";
 import Logo from "../assets/castillo logo.jpg";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer";
-// Asegúrate de importar tu Logo aquí
-// import Logo from './path/to/logo.png';
 
 export const Login = () => {
-  const navigate = useNavigate(); // 1. Guardamos lo que el usuario escribe en el estado
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     correo: "",
     contrasena: "",
@@ -24,34 +23,29 @@ export const Login = () => {
     e.preventDefault();
 
     try {
-      // Hacemos el POST a tu endpoint de Django
-      // Mapeamos los nombres de tus inputs (correo, contrasena) a lo que espera la API (email, password)
       const response = await axios.post(
         "http://127.0.0.1:8000/api/users/login/",
         {
-          email: formData.correo, // 'correo' de tu input -> 'email' para la API
-          password: formData.contrasena, // 'contrasena' de tu input -> 'password' para la API
+          email: formData.correo,
+          password: formData.contrasena,
         },
       );
 
       const { access, refresh, user } = response.data;
 
-      // 💾 GUARDAR TOKENES (opcional pero necesario para loguearse)
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
       localStorage.setItem("user", JSON.stringify(user));
 
       alert(`¡Login exitoso! Hola ${user.username}`);
 
-      // 2. REDIRECCIÓN SEGÚN EL ROL
-      // Usamos .toLowerCase() para evitar problemas si el backend devuelve 'Admin' o 'admin'
+      // --- SOLUCIÓN APLICADA AQUÍ ---
       if (user.role === "admin") {
-        navigate("http://localhost:5173/adm-menu"); // Va al menú de admin
+        navigate("/adm-menu"); // Ruta limpia
       } else {
-        navigate("http://localhost:5173/ven-menu"); // Va al menú de vendedoras
+        navigate("/ven-menu"); // Ruta limpia
       }
 
-      // Aquí podrías redirigir al usuario: window.location.href = '/dashboard';
     } catch (error) {
       console.error("Error:", error);
       alert("Credenciales incorrectas. Intenta de nuevo.");
@@ -59,10 +53,7 @@ export const Login = () => {
   };
 
   return (
-    // 1. Contenedor principal: Flex columna, altura mínima de pantalla
     <div className="flex flex-col min-h-screen w-full">
-      
-      {/* 2. Área del Login: Ocupa el espacio disponible (flex-grow) y centra el contenido */}
       <div
         className="flex-grow flex items-center justify-center p-4 w-full relative z-0 bg-gray-50"
         style={{

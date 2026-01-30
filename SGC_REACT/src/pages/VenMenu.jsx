@@ -41,12 +41,13 @@ export function VenMenu() {
                 title="Registro de retazos"
                 description="Generación de Qr y registro de retazos"
                 image={fabric}
-                url={'/registro-retazos'}
+                url={"http://localhost:5173/registro-retazos"}
               />
               <Button
                 title="Consulta y verificación de retazos"
                 description="Registro de retazos introducidos al sistema"
                 image={sewingMachine}
+                url={"http://localhost:5173/consulta-ven"}
               />
             </div>
           </section>

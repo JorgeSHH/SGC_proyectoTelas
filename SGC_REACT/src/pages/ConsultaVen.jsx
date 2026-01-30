@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 // ... otras importaciones ...
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { NavbarVen } from "../components/NavbarVen";
+import toast, { Toaster } from "react-hot-toast"; // Importación agregada
 import { SecureImage } from "../components/SecureImage"; 
 
 export function ConsultaVen() {
@@ -189,7 +190,7 @@ export function ConsultaVen() {
       );
 
       if (response.ok) {
-        alert("Venta confirmada exitosamente");
+        toast.success("Venta confirmada exitosamente"); // Cambio de alert a toast.success
         setSelectedRetazos([]);
         setMostrarFactura(false);
         setPaginaActual(1);
@@ -197,11 +198,11 @@ export function ConsultaVen() {
         await fetchRetazos();
       } else {
         console.error("Error en la respuesta del servidor");
-        alert("Hubo un error al confirmar la venta.");
+        toast.error("Hubo un error al confirmar la venta."); // Cambio de alert a toast.error
       }
     } catch (error) {
       console.error("Error al conectar con el servidor:", error);
-      alert("Error de conexión al intentar confirmar la venta.");
+      toast.error("Error de conexión al intentar confirmar la venta."); // Cambio de alert a toast.error
     }
   };
 
@@ -250,6 +251,7 @@ export function ConsultaVen() {
 
   return (
     <>
+      <Toaster /> {/* Componente Toaster agregado */}
       <NavbarVen />
       <div className="min-h-screen flex flex-col relative bg-gray-900">
         <div

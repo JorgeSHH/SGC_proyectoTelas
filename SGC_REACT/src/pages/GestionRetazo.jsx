@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { Navbar } from "../components/Navbar";
+import toast, { Toaster } from "react-hot-toast";
 // Importamos el componente SecureImage
 import { SecureImage } from "../components/SecureImage";
 
 
+<Toaster />;
 export function GestionRetazo() {
 
   const [retazos, setRetazos] = useState([]);
@@ -123,7 +125,7 @@ export function GestionRetazo() {
       );
 
       if (response.ok) {
-        alert("Retazo registrado con éxito");
+        toast.success("Retazo registrado con éxito");
         setMostrarModalRegistro(false);
         setFormRegistro({
           length_meters: "",
@@ -144,40 +146,67 @@ export function GestionRetazo() {
           errorMsg += ` Tipo: ${errorData.fabric_type}`;
         if (errorData.non_field_errors)
           errorMsg += ` ${errorData.non_field_errors.join(", ")}`;
-        alert(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Error en el registro:", error);
     }
   };
 
-  const eliminarRetazos = async (fabric_scrap_id) => {
-    if (window.confirm("¿Estás seguro de eliminar este retazo?")) {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/inventory/scraps/${fabric_scrap_id}/`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+  // 1. Función que muestra el Toast con los botones
+  const eliminarRetazos = (fabric_scrap_id) => {
+    toast.custom((t) => (
+      <div className="bg-[#3a3b3c] border border-[#ec4444] justify-center text-center text-white px-6 py-4 rounded-lg shadow-2xl flex flex-col items-center gap-3 min-w-[300px]">
+        <p className="text-center font-medium">
+          ¿Estás seguro de eliminar este tipo de tela?
+        </p>
+        <div className="flex gap-4 w-full justify-center items-center">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id); // Cerrar el toast
+              ejecutarEliminacion(fabric_scrap_id); // Ejecutar lógica real
+            }}
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded transition-colors font-bold"
+          >
+            Sí
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)} // Solo cerrar el toast
+            className="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded transition-colors"
+          >
+            No
+          </button>
+        </div>
+      </div>
+    ));
+  };
 
-        if (response.ok) {
-          alert("Retazo eliminado exitosamente");
-          fetchRetazos();
-        } else {
-          const errorData = await response.json();
-          alert(
-            errorData.detail ||
-              "No se puede eliminar: Esta tela tiene retazos asociados.",
-          );
-        }
-      } catch (error) {
-        console.error("Error al eliminar:", error);
-        alert("Hubo un error de conexión al intentar eliminar.");
+  // 2. Función separada que contiene la lógica del API (la que estaba dentro del if)
+  const ejecutarEliminacion = async (fabric_scrap_id) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/inventory/scraps/${fabric_scrap_id}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        toast.success("Retazo eliminado exitosamente");
+        fetchRetazos();
+      } else {
+        const errorData = await response.json();
+        toast.error(
+          errorData.detail ||
+            "No se puede eliminar: Esta tela tiene retazos asociados.",
+        );
       }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      toast.error("Hubo un error de conexión al intentar eliminar.");
     }
   };
 
@@ -208,17 +237,17 @@ export function GestionRetazo() {
       );
 
       if (response.ok) {
-        alert("Retazos actualizados correctamente (PATCH)");
+        toast.success("Retazos actualizados correctamente (PATCH)");
         setRetazosEditando(null);
         fetchRetazos();
       } else {
         const errorData = await response.json();
         console.log("Error del backend:", errorData);
-        alert("Error al actualizar: " + JSON.stringify(errorData));
+        toast.error("Error al actualizar: " + JSON.stringify(errorData));
       }
     } catch (error) {
       console.error("Error en la conexión:", error);
-      alert("No se pudo conectar con el servidor.");
+      toast.error("No se pudo conectar con el servidor.");
     }
   };
 

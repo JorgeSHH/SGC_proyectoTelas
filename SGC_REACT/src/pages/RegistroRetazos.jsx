@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { NavbarVen } from "../components/NavbarVen";
+import toast, { Toaster } from "react-hot-toast"; // 1. Importación agregada
 
 export function RegistroRetazos() {
-  
   const [formData, setFormData] = useState({
-    fabric_type_id: "", 
-    length_meters: "",    
-    width_meters: "",     
+    fabric_type_id: "",
+    length_meters: "",
+    width_meters: "",
     description: "",
     historial_price: "",
   });
@@ -18,7 +18,7 @@ export function RegistroRetazos() {
   useEffect(() => {
     async function cargarTipos() {
       const token = localStorage.getItem("access");
-      
+
       if (!token) {
         console.warn("No hay token disponible en localStorage");
         return;
@@ -33,7 +33,7 @@ export function RegistroRetazos() {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.ok) {
@@ -63,8 +63,8 @@ export function RegistroRetazos() {
 
     // Validación extra para evitar enviar NaN
     if (!formData.fabric_type_id || isNaN(parseInt(formData.fabric_type_id))) {
-        alert("Por favor selecciona un tipo de tela válido.");
-        return;
+      toast.error("Por favor selecciona un tipo de tela válido."); // 2. Cambio de alert a toast.error
+      return;
     }
 
     setLoading(true);
@@ -72,54 +72,60 @@ export function RegistroRetazos() {
     const token = localStorage.getItem("access");
 
     if (!token) {
-        alert("No estás autenticado. Inicia sesión nuevamente.");
-        setLoading(false);
-        return;
+      toast.error("No estás autenticado. Inicia sesión nuevamente."); // 3. Cambio de alert a toast.error
+      setLoading(false);
+      return;
     }
 
     // Payload
     const payload = {
-        fabric_type_id: parseInt(formData.fabric_type_id),
-        length_meters: parseFloat(formData.length_meters),
-        width_meters: parseFloat(formData.width_meters),
-        description: formData.description,
+      fabric_type_id: parseInt(formData.fabric_type_id),
+      length_meters: parseFloat(formData.length_meters),
+      width_meters: parseFloat(formData.width_meters),
+      description: formData.description,
 
-        active: true,
+      active: true,
     };
 
     console.log("Enviando payload:", payload);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/inventory/scraps/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/inventory/scraps/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       if (response.ok) {
-        alert("Retazo registrado con éxito");
-        setFormData({ 
-            fabric_type_id: "", 
-            length_meters: "", 
-            width_meters: "", 
-            description: "", 
- 
+        toast.success("Retazo registrado con éxito"); // 4. Cambio de alert a toast.success
+        setFormData({
+          fabric_type_id: "",
+          length_meters: "",
+          width_meters: "",
+          description: "",
         });
       } else {
-        const errorData = await response.json().catch(() => ({})); 
-        console.error("Error del servidor:", JSON.stringify(errorData, null, 2));
-        
+        const errorData = await response.json().catch(() => ({}));
+        console.error(
+          "Error del servidor:",
+          JSON.stringify(errorData, null, 2),
+        );
+
         let errorMsg = "Error al registrar.";
         if (errorData.detail) errorMsg += ` ${errorData.detail}`;
-        if (errorData.errors) errorMsg += ` ${JSON.stringify(errorData.errors)}`;
-        alert(errorMsg);
+        if (errorData.errors)
+          errorMsg += ` ${JSON.stringify(errorData.errors)}`;
+        toast.error(errorMsg); // 5. Cambio de alert a toast.error
       }
     } catch (error) {
       console.error("Error de red:", error);
-      alert("No se pudo conectar con el servidor.");
+      toast.error("No se pudo conectar con el servidor."); // 6. Cambio de alert a toast.error
     } finally {
       setLoading(false);
     }
@@ -127,8 +133,9 @@ export function RegistroRetazos() {
 
   return (
     <>
+      <Toaster />{" "}
+      {/* 7. Agregado el componente Toaster aquí para que funcionen las notificaciones */}
       <NavbarVen />
-
       <div className="min-h-screen flex flex-col relative bg-gray-900">
         <div
           className="absolute inset-0 z-0"
@@ -142,14 +149,15 @@ export function RegistroRetazos() {
         <main className="relative z-10 flex-1 flex justify-center items-center px-4 py-8">
           <div className="w-full max-w-2xl bg-gradient-to-br from-[#3a3b3c]/58 to-[#2a2b2c] rounded-xl shadow-2xl p-8 border border-[#ec4444]">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Nuevo Retazo</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Nuevo Retazo
+              </h1>
               <p className="text-gray-300">
                 Ingresa la información del retazo de tela
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              
               {/* SELECT DINÁMICO - CORREGIDO KEYS Y MAYÚSCULAS */}
               <div>
                 <label
@@ -168,12 +176,14 @@ export function RegistroRetazos() {
                   disabled={loading}
                 >
                   {/* CORRECCIÓN 1: Agregada key="default" para arreglar la advertencia */}
-                  <option value="" key="default">Selecciona un tipo...</option>
-                  
+                  <option value="" key="default">
+                    Selecciona un tipo...
+                  </option>
+
                   {/* CORRECCIÓN 2: Usamos 'Fabric_Type_id' (Mayúsculas) como en tu código funcional */}
                   {tiposTela.map((tipo) => (
-                    <option 
-                      key={tipo.Fabric_Type_id} 
+                    <option
+                      key={tipo.Fabric_Type_id}
                       value={tipo.Fabric_Type_id}
                     >
                       {tipo.name} ({tipo.material_type})
@@ -181,7 +191,9 @@ export function RegistroRetazos() {
                   ))}
                 </select>
                 {loading && tiposTela.length === 0 && (
-                  <p className="text-xs text-gray-400 mt-1">Cargando tipos...</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Cargando tipos...
+                  </p>
                 )}
               </div>
 
@@ -246,9 +258,7 @@ export function RegistroRetazos() {
                   required
                 />
               </div>
-              
 
-                
               <div className="pt-4 flex justify-center">
                 <button
                   type="submit"

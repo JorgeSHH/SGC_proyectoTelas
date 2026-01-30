@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from .models import Fabric_Scrap, Fabric_Type
-from .serializers import FabricScrapSerializer,FabricTypeSerializer
+from .serializers import FabricScrapSerializer,FabricTypeSerializer, BulkDesactivarScrapsSerializer
 from .permissions import IsAdministrator, IsSaleswoman
 from rest_framework.permissions import IsAuthenticated
 from django.forms.models import model_to_dict
@@ -19,6 +19,8 @@ from django.conf import settings
 from django.db.models import Count
 from rest_framework.decorators import action
 from django.db.models.functions import TruncWeek
+from django.db import transaction
+from django.utils import timezone
 import os 
 
 
@@ -33,6 +35,7 @@ class FabricScrapViewSet(viewsets.ModelViewSet, AuditMixins):
     search_fields = ['description', 'fabric_scrap_id', 'active']
     ordering_fields = ['fabric_scrap_id']
 
+
     def get_permissions(self):
         if self.action in ['destroy', 'update', 'partial_update']:
             return [IsAdministrator()]
@@ -45,7 +48,8 @@ class FabricScrapViewSet(viewsets.ModelViewSet, AuditMixins):
             return Fabric_Scrap.objects.all()
         #filter(created_by=user)   
         return Fabric_Scrap.objects.none()
-
+    
+   
     # respuestas personalizadas
 
     def create(self, request, *args, **kwargs):
@@ -105,6 +109,7 @@ class FabricScrapViewSet(viewsets.ModelViewSet, AuditMixins):
         retazo.qr = nombre_qr
         retazo.save()
         serializer.instance = retazo
+    
 
     # ganchos para guardar en el log 
 
@@ -269,3 +274,64 @@ class InventarioDashboardViewSet(viewsets.ViewSet):
                 "progreso_semanal": progreso_semanal
             }
         })
+    
+
+class ConfirmarVentaView(APIView):
+    permission_classes = [IsAuthenticated, (IsAdministrator | IsSaleswoman)]
+
+    @transaction.atomic
+    def post(self, request):
+        """
+        Procesa la venta masiva de retazos, calcula el precio histórico 
+        y los saca de inventario.
+        """
+        serializer = BulkDesactivarScrapsSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                "status": "error",
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        scrap_ids = serializer.validated_data['scrap_ids']
+
+        try:
+            # 1. Bloqueamos las filas para evitar que otra vendedora las venda al mismo tiempo
+            retazos = Fabric_Scrap.objects.select_for_update().select_related('fabric_type').filter(
+                fabric_scrap_id__in=scrap_ids,
+                active=True
+            )
+
+            # 2. Validación de integridad
+            if retazos.count() != len(scrap_ids):
+                encontrados = list(retazos.values_list('fabric_scrap_id', flat=True))
+                faltantes = list(set(scrap_ids) - set(encontrados))
+                return Response({
+                    "status": "error",
+                    "message": "Venta cancelada: Algunos retazos no están disponibles.",
+                    "ids_no_disponibles": faltantes
+                }, status=status.HTTP_409_CONFLICT)
+
+            # 3. Procesamiento individual para historial_price
+       
+            ahora = timezone.now()
+            for retazo in retazos:
+
+                precio_calculado = (retazo.length_meters * retazo.width_meters) * retazo.fabric_type.price_unit
+                
+                retazo.active = False
+                retazo.sale_date = ahora
+                retazo.historial_price = precio_calculado
+
+                retazo.save()
+
+            return Response({
+                "status": "success",
+                "message": f"Venta confirmada exitosamente. {len(scrap_ids)} retazos vendidos.",
+                "total_items": len(scrap_ids)
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": f"Error crítico en el servidor: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

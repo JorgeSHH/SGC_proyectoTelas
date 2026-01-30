@@ -13,11 +13,6 @@ from rest_framework import filters, status
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from django.conf import settings
-from rest_framework.views import APIView
 # Create your views here.
 
 class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
@@ -285,78 +280,3 @@ class MiTokenObtainPairSerialeizer(TokenObtainPairSerializer):
             'status': self.user.is_active
         }
         return data
-
-class LoginConCookiesView(TokenObtainPairView):
-    serializer_class = MiTokenObtainPairSerialeizer
-
-    def post(self, request, *arg, **kwargs):
-        response = super().post(request, *arg, **kwargs)
-
-        if response.status_code == 200:
-            access_token = response.data.pop('access')
-            refresh_token = response.data.pop('refresh')
-
-            response.set_cookie(
-                key='access_token',
-                value = access_token,
-                httponly = True,
-                secure= False, # esta variable debe de ser cambiada a True si se despliega ojo
-                samesite = 'Lax',
-                max_age=60 * 60
-            )
-
-            response.set_cookie(
-                key='refresh_token',
-                value = refresh_token,
-                httponly = True,
-                secure= False, # esta variable debe de ser cambiada a True si se despliega ojo
-                samesite = 'Lax',
-                max_age= 28800
-            )
-
-            return response
-
-class RefreshTokenCookiesView(APIView):
-    def post(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')
-
-        if not refresh_token:
-            return Response({"status":"error", "message": "El token de Refresh no encontrado"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        try:
-            refresh = RefreshToken(refresh_token)
-            
-
-            response = Response({"status":"success", "message":"Tokens renovados"})
-
-            response.set_cookie(
-                key='access_token',
-                value = str(refresh.access_token),
-                httponly = True,
-                secure= False, # esta variable debe de ser cambiada a True si se despliega ojo
-                samesite = 'Lax',
-                max_age=60 * 60
-            )
-
-            response.set_cookie(
-                key='refresh_token',
-                value = refresh_token,
-                httponly = True,
-                secure= False, # esta variable debe de ser cambiada a True si se despliega ojo
-                samesite = 'Lax',
-                max_age= 28800
-            )
-
-            return response
-        except (TokenError, InvalidToken):
-            response = Response({"status":"error", "menssage":"Token de refresco inválido o expirado"}, status=status.HTTP_401_UNAUTHORIZED)
-            response.delete_cookie('access_token')
-            response.delete_cookie('refresh_token')
-            return response
-
-class LogoutView(APIView):
-    def post(self, request):
-        response = Response({"status":"success", "message":"Sesion cerrado"}, status=status.HTTP_200_OK)
-        response.delete_cookie('access_token')
-        response.delete_cookie('refresh_token')
-        return response

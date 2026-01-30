@@ -1,20 +1,22 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useState } from "react"; // ❌ ESTO ES LO IMPORTANTE: useState es de React, no de axios
+import axios from "axios";
 import Logo from "../assets/castillo logo.jpg";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer";
+// Asegúrate de importar tu Logo aquí
+// import Logo from './path/to/logo.png';
 
 export const Login = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // 1. Guardamos lo que el usuario escribe en el estado
   const [formData, setFormData] = useState({
-    correo: '',
-    contrasena: ''
+    correo: "",
+    contrasena: "",
   });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -22,25 +24,34 @@ export const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/users/login/', {
-        email: formData.correo,
-        password: formData.contrasena
-      });
+      // Hacemos el POST a tu endpoint de Django
+      // Mapeamos los nombres de tus inputs (correo, contrasena) a lo que espera la API (email, password)
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/users/login/",
+        {
+          email: formData.correo, // 'correo' de tu input -> 'email' para la API
+          password: formData.contrasena, // 'contrasena' de tu input -> 'password' para la API
+        },
+      );
 
       const { access, refresh, user } = response.data;
 
-      localStorage.setItem('access', access);
-      localStorage.setItem('refresh', refresh);
-      localStorage.setItem('user', JSON.stringify(user));
+      // 💾 GUARDAR TOKENES (opcional pero necesario para loguearse)
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+      localStorage.setItem("user", JSON.stringify(user));
 
       alert(`¡Login exitoso! Hola ${user.username}`);
 
-      if (user.role === 'admin') {
-        navigate('/adm-menu'); // Es mejor usar rutas relativas
+      // 2. REDIRECCIÓN SEGÚN EL ROL
+      // Usamos .toLowerCase() para evitar problemas si el backend devuelve 'Admin' o 'admin'
+      if (user.role === "admin") {
+        navigate("http://localhost:5173/adm-menu"); // Va al menú de admin
       } else {
-        navigate('/ven-menu');
+        navigate("http://localhost:5173/ven-menu"); // Va al menú de vendedoras
       }
 
+      // Aquí podrías redirigir al usuario: window.location.href = '/dashboard';
     } catch (error) {
       console.error("Error:", error);
       alert("Credenciales incorrectas. Intenta de nuevo.");
@@ -119,10 +130,7 @@ export const Login = () => {
           </div>
         </div>
       </div>
-
-      {/* 3. Footer: Se coloca al final natural gracias al flex-col del padre */}
       <Footer />
-      
     </div>
   );
 };

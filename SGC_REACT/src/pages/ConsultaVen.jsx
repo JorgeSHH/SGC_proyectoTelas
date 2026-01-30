@@ -19,7 +19,7 @@ export function ConsultaVen() {
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
 
-  // --- Fetch de Retazos ---
+  // --- Fetch de Retazos (ACTUALIZADO) ---
   const fetchRetazos = async () => {
     try {
       if (!token) return;
@@ -35,7 +35,12 @@ export function ConsultaVen() {
       );
       if (response.ok) {
         const data = await response.json();
-        setRetazos(data);
+
+        // --- FILTRO DE ESTADO ACTIVO ---
+        // Solo guardamos los retazos donde active NO sea 0
+        const retazosActivos = data.filter((retazo) => retazo.active !== 0);
+
+        setRetazos(retazosActivos);
       }
     } catch (error) {
       console.error("Error al obtener datos: ", error);
@@ -163,11 +168,40 @@ export function ConsultaVen() {
     generarPDF();
   };
 
-  const handleConfirmarVenta = () => {
-    alert("Venta confirmada exitosamente");
-    setSelectedRetazos([]);
-    setMostrarFactura(false);
-    setPaginaActual(1);
+  // --- FUNCIÓN MODIFICADA: CONFIRMAR VENTA (POST) ---
+  const handleConfirmarVenta = async () => {
+    const ids = selectedRetazos.map((r) => r.fabric_scrap_id);
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/inventory/confirmar-venta/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            scrap_ids: ids,
+          }),
+        },
+      );
+
+      if (response.ok) {
+        alert("Venta confirmada exitosamente");
+        setSelectedRetazos([]);
+        setMostrarFactura(false);
+        setPaginaActual(1);
+        // Recargamos para que los items desactivados (active=0) desaparezcan de la lista
+        await fetchRetazos();
+      } else {
+        console.error("Error en la respuesta del servidor");
+        alert("Hubo un error al confirmar la venta.");
+      }
+    } catch (error) {
+      console.error("Error al conectar con el servidor:", error);
+      alert("Error de conexión al intentar confirmar la venta.");
+    }
   };
 
   const handleDescargarPDF = () => {

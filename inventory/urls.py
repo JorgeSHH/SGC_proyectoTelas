@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import FabricScrapViewSet, FabricTypeViewSet, ServeQRView, InventarioDashboardViewSet
+from .views import FabricScrapViewSet, FabricTypeViewSet, ServeQRView, InventarioDashboardViewSet, ConfirmarVentaView
 
 # Creamos el router
 router = DefaultRouter()
@@ -14,5 +14,6 @@ router.register(r'dashboard', InventarioDashboardViewSet, basename='inventory-da
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('confirmar-venta/', ConfirmarVentaView.as_view(), name='confirmar-venta'),
     path('qrs/<str:tipo>/<int:pk>/', ServeQRView.as_view(), name='serve_qr'),
 ]

@@ -85,3 +85,9 @@ class FabricScrapStatsSerializer(serializers.Serializer):
 class SaleswomanStatsSerializer(serializers.Serializer):
     created_by__username = serializers.CharField()
     total = serializers.IntegerField()
+
+class BulkDesactivarScrapsSerializer(serializers.Serializer):
+    scrap_ids = serializers.ListField(
+        child = serializers.IntegerField(),
+        allow_empty = False
+    )

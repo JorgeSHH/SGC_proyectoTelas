@@ -46,7 +46,6 @@ export const Login = () => {
       } else {
         navigate("/ven-menu"); // Ruta limpia
       }
-
     } catch (error) {
       console.error("Error:", error);
       toast.error("Credenciales incorrectas. Intenta de nuevo.");
@@ -77,7 +76,10 @@ export const Login = () => {
               <h2 className="text-[28px] text-gray-800 mb-6">Iniciar Sesión</h2>
 
               <div className="input-group mb-5 text-left">
-                <label htmlFor="correo" className="block mb-0 text-gray-600 font-bold">
+                <label
+                  htmlFor="correo"
+                  className="block mb-0 text-gray-600 font-bold"
+                >
                   Correo Electrónico
                 </label>
                 <input
@@ -93,7 +95,10 @@ export const Login = () => {
               </div>
 
               <div className="input-group mb-5 text-left">
-                <label htmlFor="contrasena" className="block mb-0 text-gray-600 font-bold">
+                <label
+                  htmlFor="contrasena"
+                  className="block mb-0 text-gray-600 font-bold"
+                >
                   Contraseña
                 </label>
                 <input
@@ -115,14 +120,16 @@ export const Login = () => {
                 Ingresar
               </button>
 
-              <a href="#" className="block mt-5 text-indigo-500 text-sm hover:underline">
+              <a
+                href="#"
+                className="block mt-5 text-indigo-500 text-sm hover:underline"
+              >
                 ¿Olvidaste tu contraseña?
               </a>
             </form>
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

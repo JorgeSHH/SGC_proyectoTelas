@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 // Importamos el componente SecureImage
 import { SecureImage } from "../components/SecureImage";
+import toast, { Toaster } from "react-hot-toast";
 
 export function RegistroTiposTela() {
   const [tiposDeTelas, setTiposDeTelas] = useState([]); 
@@ -79,43 +80,79 @@ export function RegistroTiposTela() {
       });
 
       if (response.ok) {
-        alert("Tela registrada con éxito");
+        toast.success("Tela registrada con éxito");
         setMostrarModalRegistro(false);
         setFormRegistro({ name: "", material_type: "", description: "", price_unit: "" });
         fetchTiposTelas();
       } else {
-        alert("Error al registrar. Verifica los datos.");
+        toast.error("Error al registrar. Verifica los datos.");
       }
     } catch (error) {
       console.error("Error en el registro:", error);
     }
   };
 
+  
   // --- Eliminar (DELETE) ---
-  const eliminarTiposDeTelas = async (fabric_type_id) => {
-    if (window.confirm("¿Estás seguro de eliminar este tipo de tela?")) {
-      try {
-        const response = await fetch(`http://127.0.0.1:8000/api/inventory/types/${fabric_type_id}/`, {
-          method: "DELETE",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          alert("Tipo de tela eliminada exitosamente");
-          fetchTiposTelas();
-        } else {
-          const errorData = await response.json();
-          alert(errorData.detail || "No se puede eliminar: Esta tela tiene retazos asociados.");
-        }
-      } catch (error) {
-        console.error("Error al eliminar:", error);
-        alert("Hubo un error de conexión al intentar eliminar.");
-      }
-    }
+  const eliminarTiposDeTelas = (fabric_type_id) => {
+    toast((t) => (
+      <span className="flex flex-col sm:flex-row items-center gap-3">
+        <span className="text-sm">
+          ¿Estás seguro de <b>eliminar</b> esta tela?
+        </span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-200 text-black px-2 py-1 rounded text-xs font-semibold hover:bg-gray-300 transition-colors"
+          >
+            No
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              ejecutarEliminacionReal(fabric_type_id); // Llamamos a la lógica de la API
+            }}
+            className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold hover:bg-red-700 transition-colors shadow-md"
+          >
+            Sí, eliminar
+          </button>
+        </div>
+      </span>
+    ), {
+      duration: 5000,
+      position: "top-center",
+      style: {
+        background: "#2a2b2c", // Fondo oscuro para combinar con tu dashboard
+        color: "#fff",
+        border: "1px solid #ec4444",
+      },
+    });
   };
 
+  // --- Función 2: La que realmente hace el fetch ---
+  const ejecutarEliminacionReal = async (fabric_type_id) => {
+    const loadingToast = toast.loading("Eliminando tipo de tela...");
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/inventory/types/${fabric_type_id}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Tipo de tela eliminada exitosamente", { id: loadingToast });
+        fetchTiposTelas(); // Recargamos la lista
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.detail || "No se puede eliminar: Esta tela tiene retazos asociados.", { id: loadingToast });
+      }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      toast.error("Hubo un error de conexión.", { id: loadingToast });
+    }
+  };
+  
   // --- Editar (SET) ---
   const editarTiposDeTelas = (tiposDeTela) => {
     setTiposDeTelasEditando(tiposDeTela);
@@ -144,16 +181,16 @@ export function RegistroTiposTela() {
       });
 
       if (response.ok) {
-        alert("Tela actualizada correctamente (PATCH)");
+        toast.success("Tela actualizada correctamente");
         setTiposDeTelasEditando(null);
         fetchTiposTelas();
       } else {
         const errorData = await response.json();
-        alert("Error al actualizar: " + JSON.stringify(errorData));
+        toast.error("Error al actualizar: " + JSON.stringify(errorData));
       }
     } catch (error) {
       console.error("Error en la conexión:", error);
-      alert("No se pudo conectar con el servidor.");
+      toast.error("No se pudo conectar con el servidor.");
     }
   };
 

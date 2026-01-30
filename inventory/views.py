@@ -21,6 +21,7 @@ from rest_framework.decorators import action
 from django.db.models.functions import TruncWeek
 from django.db import transaction
 from django.utils import timezone
+from decimal import Decimal, ROUND_HALF_UP
 import os 
 
 
@@ -316,7 +317,7 @@ class ConfirmarVentaView(APIView):
             ahora = timezone.now()
             for retazo in retazos:
 
-                precio_calculado = (retazo.length_meters * retazo.width_meters) * retazo.fabric_type.price_unit
+                precio_calculado = ((retazo.length_meters * retazo.width_meters) * retazo.fabric_type.price_unit).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP)
                 
                 retazo.active = False
                 retazo.sale_date = ahora

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ButtonExp } from "../components/ButtonExp";
 import { getAllSalesWoman } from "../api/tasks.api";
 import { Navbar } from "../components/Navbar";
+import toast, { Toaster } from "react-hot-toast";
 
 export function GestionVen() {
   const [filtro, setFiltro] = useState("");
@@ -49,7 +50,7 @@ export function GestionVen() {
       });
 
       if (response.ok) {
-        alert("Vendedora registrada con éxito");
+        toast.success("Vendedora registrada con éxito");
         setMostrarModalRegistro(false);
         setFormRegistro({
           first_name: "", last_name: "", email: "", phone: "",
@@ -58,7 +59,7 @@ export function GestionVen() {
         window.location.reload();
       } else {
         const error = await response.json();
-        alert("Error: " + JSON.stringify(error));
+        toast.error("Error al registrar vendedora" + JSON.stringify(error));
       }
     } catch (error) {
       console.error("Error:", error);
@@ -77,15 +78,15 @@ export function GestionVen() {
         });
 
         if (response.ok) {
-          alert("Vendedora eliminada exitosamente");
+          toast.success("Vendedora eliminada exitosamente");
           setSalesWoman(salesWoman.filter(v => v.saleswoman_id !== saleswoman_id));
         } else {
           const errorData = await response.json();
-          alert("Error al eliminar: " + (errorData.detail || "No se pudo completar la acción"));
+          toast.error("Error al eliminar: " + (errorData.detail || "No se pudo completar la acción"));
         }
       } catch (error) {
         console.error("Error en la petición:", error);
-        alert("Error de conexión al intentar eliminar.");
+        toast.error("Error de conexión al intentar eliminar.");
       }
     }
   };
@@ -131,16 +132,16 @@ export function GestionVen() {
       });
 
       if (response.ok) {
-        alert("Vendedora actualizada correctamente");
+        toast.success("Vendedora actualizada correctamente");
         setVendedoraEditando(null);
         setSalesWoman(salesWoman.map(v => v.saleswoman_id === id ? { ...v, ...formEdit } : v));
       } else {
         const errorData = await response.json();
-        alert("Error al actualizar: " + JSON.stringify(errorData));
+        toast.error("Error al actualizar: " + JSON.stringify(errorData));
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error de conexión");
+      toast.error("Error de conexión");
     }
   };
 
@@ -174,6 +175,7 @@ export function GestionVen() {
 
   const exportarExcel = () => {
     console.log("Exportando a Excel...");
+    
   };
 
   const exportarPDF = () => {

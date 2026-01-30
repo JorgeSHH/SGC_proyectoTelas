@@ -3,6 +3,7 @@ import axios from "axios";
 import Logo from "../assets/castillo logo.jpg";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../components/footer";
+import toast, { Toaster } from "react-hot-toast";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export const Login = () => {
       localStorage.setItem("refresh", refresh);
       localStorage.setItem("user", JSON.stringify(user));
 
-      alert(`¡Login exitoso! Hola ${user.username}`);
+      toast.success(`¡Login exitoso! Hola ${user.username}`);
 
       // --- SOLUCIÓN APLICADA AQUÍ ---
       if (user.role === "admin") {
@@ -48,7 +49,7 @@ export const Login = () => {
 
     } catch (error) {
       console.error("Error:", error);
-      alert("Credenciales incorrectas. Intenta de nuevo.");
+      toast.error("Credenciales incorrectas. Intenta de nuevo.");
     }
   };
 

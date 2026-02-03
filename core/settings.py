@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'audit',
     'utils',
     'drf_spectacular', #documentacion de la api
-
+    'django_apscheduler',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
 
@@ -158,7 +158,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'es-es'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Caracas'
 
 USE_I18N = True
 

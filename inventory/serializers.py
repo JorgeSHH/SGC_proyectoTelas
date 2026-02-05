@@ -76,4 +76,18 @@ class FabricScrapSerializer(serializers.ModelSerializer):
         fields = ['fabric_scrap_id', 'fabric_type_id', 'fabric_type' ,'length_meters', 'width_meters', 'description', 'active', 'qr','created_by_role' ,'created_by', 'historial_price','sale_date', 'last_update_at', 'registered_at']
         read_only_fields = ['created_at', 'historial_price']
 
+# serializers para el dashboar estadistico
 
+class FabricScrapStatsSerializer(serializers.Serializer):
+    fabric_type__name = serializers.CharField()
+    total = serializers.IntegerField()
+
+class SaleswomanStatsSerializer(serializers.Serializer):
+    created_by__username = serializers.CharField()
+    total = serializers.IntegerField()
+
+class BulkDesactivarScrapsSerializer(serializers.Serializer):
+    scrap_ids = serializers.ListField(
+        child = serializers.IntegerField(),
+        allow_empty = False
+    )

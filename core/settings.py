@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'django_apscheduler',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-
 ]
 
 
@@ -94,6 +93,7 @@ SIMPLE_JWT = {
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -172,7 +172,6 @@ STATIC_URL = 'static/'
 
 # Si quieres que el navegador pueda enviarte cookies o tokens de sesión
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:3000']
 CORS_ALLOW_ALL_ORIGINS = True  # o usa CORS_ALLOWED_ORIGINS con tu frontend
 
 CORS_ALLOW_METHODS = [
@@ -184,7 +183,26 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
+# Headers que tu front envía (si usas Authorization u otros)
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
+
+
+# configuaracion para generar qr
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+#configuaracion del correo
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

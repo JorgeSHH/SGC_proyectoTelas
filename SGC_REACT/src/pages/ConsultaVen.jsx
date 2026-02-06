@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { NavbarVen } from "../components/NavbarVen";
 import toast, { Toaster } from "react-hot-toast"; // Importación agregada
-import { SecureImage } from "../components/SecureImage"; 
+import { SecureImage } from "../components/SecureImage";
 
 export function ConsultaVen() {
   // --- Estados existentes ---
@@ -79,13 +79,6 @@ export function ConsultaVen() {
 
   const isSelected = (id) => {
     return selectedRetazos.some((r) => r.fabric_scrap_id === id);
-  };
-
-  // --- Lógica de Facturación ---
-  const calcularPrecioRetazo = (retazo) => {
-    const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
-    const precioPorMetroCuadrado = 10.0;
-    return area * precioPorMetroCuadrado;
   };
 
   const getTotalFactura = () => {
@@ -236,6 +229,13 @@ export function ConsultaVen() {
     );
   });
 
+  // --- Lógica de Facturación ---
+  const calcularPrecioRetazo = (retazo) => {
+    const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
+    const precioPorMetroCuadrado = retazo.fabric_type?.price_unit;
+    return area * precioPorMetroCuadrado;
+  };
+
   const totalPaginas = Math.ceil(retazosFiltrados.length / elementosPorPagina);
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const retazosPaginados = retazosFiltrados.slice(
@@ -284,16 +284,15 @@ export function ConsultaVen() {
                   className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
-              <ButtonExpTPT />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
               {retazosPaginados.map((retazo) => {
                 const precio = calcularPrecioRetazo(retazo);
                 return (
                   <div
                     key={retazo.fabric_scrap_id}
-                    className={`bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border transition-all duration-300 relative cursor-pointer
+                    className={`bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border transition-all duration-300 relative cursor-pointer 
                       ${isSelected(retazo.fabric_scrap_id) ? "border-blue-500 ring-2 ring-blue-500" : "border-gray-600 hover:border-[#ec4444]"}
                     `}
                     onClick={() => toggleSelection(retazo)}
@@ -321,28 +320,48 @@ export function ConsultaVen() {
                     </div>
 
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-ellipsis w-75">
-                        <span className="text-gray-400">Ancho:</span>
-                        <span className="text-white">
-                          {retazo.width_meters}m
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-ellipsis w-75">
-                        <span className="text-gray-400">Largo:</span>
-                        <span className="text-white">
-                          {retazo.length_meters}m
+                      <div className="flex justify-between ">
+                        <div>
+                          <span className="text-gray-400">Creador:</span>{" "}
+                          <span className="text-white">
+                            <span className="text-white">
+                              {retazo.created_by}
+                            </span>
+                          </span>
+                        </div>
+                        <span>
+                          <span className="text-gray-400">Rol:</span>{" "}
+                          <span className="text-white">
+                            {retazo.created_by_role}
+                          </span>
                         </span>
                       </div>
 
-                      <p className="text-gray-400 text-xs mt-2 truncate">
-                        {retazo.description}
+                      <div className="flex justify-between ">
+                        <span>
+                          <span className="text-gray-400">Ancho (metro):</span>{" "}
+                          <span className="text-white">
+                            {retazo.width_meters}
+                          </span>
+                        </span>
+                        <div>
+                          <span className="text-gray-400">Largo (metro):</span>{" "}
+                          <span className="text-white">
+                            {retazo.length_meters}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="break-words">
+                        <span className="text-gray-400">Descripcion:</span>{" "}
+                        <br />
+                        <span className="text-white">{retazo.description}</span>
                       </p>
-
                       {/* --- USO DEL COMPONENTE SEGURO --- */}
                       <div className="mt-4 flex justify-center">
-                        <SecureImage 
-                          id={retazo.fabric_scrap_id} 
-                          className="w-80 h-80 rounded-lg opacity-80 object-contain" 
+                        <SecureImage
+                          id={retazo.fabric_scrap_id}
+                          className="w-80 h-80 rounded-lg opacity-80 object-contain"
                         />
                       </div>
                       {/* --------------------------------- */}

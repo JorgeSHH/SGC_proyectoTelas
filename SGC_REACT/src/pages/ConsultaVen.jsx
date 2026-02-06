@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { NavbarVen } from "../components/NavbarVen";
 import toast, { Toaster } from "react-hot-toast"; // Importación agregada
-import { SecureImage } from "../components/SecureImage"; 
+import { SecureImage } from "../components/SecureImage";
 
 export function ConsultaVen() {
   // --- Estados existentes ---
@@ -79,13 +79,6 @@ export function ConsultaVen() {
 
   const isSelected = (id) => {
     return selectedRetazos.some((r) => r.fabric_scrap_id === id);
-  };
-
-  // --- Lógica de Facturación ---
-  const calcularPrecioRetazo = (retazo) => {
-    const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
-    const precioPorMetroCuadrado = 10.0;
-    return area * precioPorMetroCuadrado;
   };
 
   const getTotalFactura = () => {
@@ -236,6 +229,13 @@ export function ConsultaVen() {
     );
   });
 
+  // --- Lógica de Facturación ---
+  const calcularPrecioRetazo = (retazo) => {
+    const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
+    const precioPorMetroCuadrado = retazo.fabric_type?.price_unit;
+    return area * precioPorMetroCuadrado;
+  };
+
   const totalPaginas = Math.ceil(retazosFiltrados.length / elementosPorPagina);
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const retazosPaginados = retazosFiltrados.slice(
@@ -340,9 +340,9 @@ export function ConsultaVen() {
 
                       {/* --- USO DEL COMPONENTE SEGURO --- */}
                       <div className="mt-4 flex justify-center">
-                        <SecureImage 
-                          id={retazo.fabric_scrap_id} 
-                          className="w-80 h-80 rounded-lg opacity-80 object-contain" 
+                        <SecureImage
+                          id={retazo.fabric_scrap_id}
+                          className="w-80 h-80 rounded-lg opacity-80 object-contain"
                         />
                       </div>
                       {/* --------------------------------- */}

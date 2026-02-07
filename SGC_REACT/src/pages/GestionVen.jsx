@@ -5,12 +5,73 @@ import { Navbar } from "../components/Navbar";
 import toast, { Toaster } from "react-hot-toast";
 
 export function GestionVen() {
+  // 🔴 CONFIGURACIÓN DE URLS
+  const URL_API_RETZOS = "http://127.0.0.1:8000/api/inventory/scraps/"; 
+  const URL_API_ADMIN = "http://127.0.0.1:8000/api/users/administrators/"; 
+  
+  // Campo en la base de datos que queremos actualizar
+  const NOMBRE_CAMPO_FILTRO = "created_by_id"; 
+
   const [filtro, setFiltro] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 6;
 
   const token = localStorage.getItem("access");
+
+      // 🔬 AUTOPSIA DEL TOKEN: Revisamos todo el contenido del token
+  const getAdminUserId = async () => {
+    try {
+      const token = localStorage.getItem("access");
+      if (token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const payload = JSON.parse(jsonPayload);
+        
+        console.log("🧪 AUTOPSIA DEL TOKEN:");
+        console.log("   Total de campos:", Object.keys(payload).length);
+        
+        // Iteramos e imprimimos TODOS los campos uno por uno
+        Object.keys(payload).forEach(key => {
+            console.log(`   -> Campo: "${key}"`, `Valor:`, payload[key]);
+        });
+
+        // Buscamos el ID en cualquier campo que tenga 'id', 'sub' o 'user'
+        const potentialIdKeys = Object.keys(payload).filter(k => 
+            k.toLowerCase().includes('id') || k.toLowerCase().includes('sub') || k === 'pk'
+        );
+        
+        console.log("🧪 Campos candidatos a ID:", potentialIdKeys);
+
+        // Intentos de asignación por prioridad
+        if (payload.user_id) return payload.user_id;
+        if (payload.sub) return payload.sub;
+        if (payload.pk) return payload.pk;
+        if (payload.id) return payload.id;
+
+        // Si no encontramos las palabras clave, pero solo hay 1 campo numérico extra...
+        const numericValues = Object.values(payload).filter(v => typeof v === 'number' && v > 0 && v < 999999 && !v.toString().startsWith('17')); // Filtra exp/iat timestamps
+        if (numericValues.length === 1) {
+             console.log("🧪 Adivinanza: Solo hay un número sospechoso:", numericValues[0]);
+             return numericValues[0];
+        }
+      }
+    } catch (e) {
+      console.error("🧪 Error en autopsia:", e);
+    }
+    
+    console.error("❌ El Token no contiene ID identificable y la API Admin tampoco lo expone.");
+    return null;
+  };
+
   const [salesWoman, setSalesWoman] = useState([]);
+  
+  const [mostrarModalConflicto, setMostrarModalConflicto] = useState(false);
+  const [vendedoraIdConflicto, setVendedoraIdConflicto] = useState(null);
+
   const [mostrarModalRegistro, setMostrarModalRegistro] = useState(false);
   const [formRegistro, setFormRegistro] = useState({
     first_name: "",
@@ -23,20 +84,20 @@ export function GestionVen() {
     password: ""
   });
 
-  useEffect(() => {
-    async function loadSalesWoman() {
-      try {
-        const response = await getAllSalesWoman();
-        setSalesWoman(response);
-        console.log(response);
-      } catch (error) {
-        console.error("Error al obtener las vendedoras: ", error);
-      }
+  const cargarVendedoras = async () => {
+    try {
+      const response = await getAllSalesWoman();
+      setSalesWoman(response);
+    } catch (error) {
+      console.error("Error al obtener las vendedoras: ", error);
     }
-    loadSalesWoman();
+  };
+
+  useEffect(() => {
+    cargarVendedoras();
   }, []);
 
-  // envio del registro
+  // --- REGISTRO ---
   const handleRegistrar = async (e) => {
     e.preventDefault();
     try {
@@ -56,17 +117,17 @@ export function GestionVen() {
           first_name: "", last_name: "", email: "", phone: "",
           status: true, username: "", role: "saleswoman", password: ""
         });
-        window.location.reload();
+        cargarVendedoras();
       } else {
         const error = await response.json();
-        toast.error("Error al registrar vendedora" + JSON.stringify(error));
+        toast.error("Error al registrar vendedora " + JSON.stringify(error));
       }
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
-  //elimina vendedora
+  // --- ELIMINAR ---
   const handleEliminar = async (saleswoman_id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar a esta vendedora? Esta acción no se puede deshacer.")) {
       try {
@@ -82,7 +143,12 @@ export function GestionVen() {
           setSalesWoman(salesWoman.filter(v => v.saleswoman_id !== saleswoman_id));
         } else {
           const errorData = await response.json();
-          toast.error("Error al eliminar: " + (errorData.detail || "No se pudo completar la acción"));
+          if (response.status === 409 && errorData.code === 'HAS_RELATED_SCRAPS') {
+            setVendedoraIdConflicto(saleswoman_id);
+            setMostrarModalConflicto(true);
+          } else {
+            toast.error("Error al eliminar: " + (errorData.detail || errorData.message || "No se pudo completar la acción"));
+          }
         }
       } catch (error) {
         console.error("Error en la petición:", error);
@@ -91,7 +157,115 @@ export function GestionVen() {
     }
   };
 
-  //edicion de vendedoras
+  // --- CONFIRMAR REASIGNACIÓN Y ELIMINACIÓN ---
+  const handleConfirmarReasignacion = async () => {
+    if (!vendedoraIdConflicto) return;
+
+    toast.loading("Identificando usuario...", { id: "reassign-toast" });
+
+    // Usamos la función maestra que intenta Token y luego API
+    const adminUserId = await getAdminUserId();
+
+    if (!adminUserId) {
+      toast.error("Error: No se pudo encontrar tu ID de usuario. Revisa la consola (F12).", { id: "reassign-toast" });
+      return;
+    }
+
+    console.log(`✅ ID encontrado para reasignación: ${adminUserId}`);
+    toast.loading("Procesando reasignación de retazos...", { id: "reassign-toast" });
+
+    try {
+      // 1. Consultar retazos
+      const urlConsulta = `${URL_API_RETZOS}?${NOMBRE_CAMPO_FILTRO}=${vendedoraIdConflicto}`;
+      console.log("🔍 Consultando retazos en:", urlConsulta);
+      
+      const resRetazos = await fetch(urlConsulta, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!resRetazos.ok) {
+         throw new Error(`Error ${resRetazos.status} consultando retazos.`);
+      }
+      
+      const dataRetazos = await resRetazos.json();
+      const listaRetazos = dataRetazos.results || dataRetazos;
+      console.log(`🔍 Se encontraron ${listaRetazos.length} retazos.`);
+
+      // 2. Reasignar
+      if (listaRetazos.length > 0) {
+        console.log(`🔄 Iniciando reasignación al ID: ${adminUserId}`);
+        const baseUrl = URL_API_RETZOS.replace(/\/+$/, ''); 
+
+        const promesasUpdate = listaRetazos.map(async (retazo) => {
+          const idRetazo = retazo.fabric_scrap_id || retazo.id;
+          
+          if (!idRetazo) {
+            console.error("❌ Retazo sin ID:", retazo);
+            return Promise.resolve({ success: false, id: null });
+          }
+
+          const updateUrl = `${baseUrl}/${idRetazo}/`;
+          const payload = { [NOMBRE_CAMPO_FILTRO]: Number(adminUserId) }; 
+
+          console.log(`   -> PATCH ${updateUrl} con BODY:`, payload);
+
+          try {
+            const res = await fetch(updateUrl, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error(`   ❌ FALLO (Status ${res.status}):`, errorText);
+                return { success: false, id: idRetazo, error: errorText };
+            } else {
+                console.log(`   ✅ Éxito retazo ${idRetazo}`);
+                return { success: true, id: idRetazo };
+            }
+          } catch (err) {
+            console.error(`   ❌ Error red retazo ${idRetazo}:`, err);
+            return { success: false, id: idRetazo, error: err.message };
+          }
+        });
+        
+        const resultados = await Promise.all(promesasUpdate);
+        const fallos = resultados.filter(r => !r.success);
+        
+        if (fallos.length > 0) {
+            throw new Error(`${fallos.length} retazos fallaron. Verifica que el ID ${adminUserId} exista en Users.`);
+        }
+      }
+
+      // 3. Eliminar vendedora
+      console.log("🗑️ Eliminando vendedora ID:", vendedoraIdConflicto);
+      const resDelete = await fetch(`http://127.0.0.1:8000/api/users/saleswoman/${vendedoraIdConflicto}/`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (resDelete.ok) {
+        toast.success("Vendedora eliminada y retazos reasignados", { id: "reassign-toast" });
+        setMostrarModalConflicto(false);
+        setVendedoraIdConflicto(null);
+        cargarVendedoras();
+      } else {
+        const err = await resDelete.json();
+        console.error("❌ Error final:", err);
+        toast.error("Error al eliminar: " + (err.message || err.detail || ""), { id: "reassign-toast" });
+      }
+
+    } catch (error) {
+      console.error("❌ Error general:", error);
+      toast.error(error.message, { id: "reassign-toast" });
+    }
+  };
+
+  // --- EDICIÓN ---
   const [vendedoraEditando, setVendedoraEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({});
 
@@ -145,24 +319,17 @@ export function GestionVen() {
     }
   };
 
-  // ✅ LÓGICA DE FILTRADO ACTUALIZADA
+  // Lógica de filtrado
   const vendedorasFiltradas = salesWoman.filter((v) => {
     const termino = filtro.toLowerCase();
-
-    // 1. Verificamos ID (convertido a string para comparar)
     const matchId = String(v.saleswoman_id).includes(termino);
-
-    // 2. Verificamos Nombre (Nombre + Apellido)
     const nombreCompleto = `${v.first_name} ${v.last_name}`.toLowerCase();
     const matchNombre = nombreCompleto.includes(termino);
-
     return matchId || matchNombre;
   });
 
   // Lógica de paginación
-  const totalPaginas = Math.ceil(
-    vendedorasFiltradas.length / elementosPorPagina,
-  );
+  const totalPaginas = Math.ceil(vendedorasFiltradas.length / elementosPorPagina);
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const indiceFin = indiceInicio + elementosPorPagina;
   const VendedorasPaginado = vendedorasFiltradas.slice(indiceInicio, indiceFin);
@@ -175,7 +342,6 @@ export function GestionVen() {
 
   const exportarExcel = () => {
     console.log("Exportando a Excel...");
-    
   };
 
   const exportarPDF = () => {
@@ -185,6 +351,7 @@ export function GestionVen() {
   return (
     <>
       <Navbar />
+      <Toaster position="top-center" reverseOrder={false} />
 
       <div className="min-h-screen flex flex-col relative bg-gray-900">
         <div
@@ -262,7 +429,6 @@ export function GestionVen() {
                       <span className="text-gray-400">Fecha de Registro:</span>{" "}
                       <span className="text-white">{salesWomans.created_at}</span>
                     </p>
-                    {/* ✅ NUEVO CAMPO: EMAIL DEL ADMINISTRADOR */}
                     <p>
                       <span className="text-gray-400">ID_Admin:</span>{" "}
                       <span className="text-white">
@@ -421,7 +587,7 @@ export function GestionVen() {
                   <input
                     type="password"
                     className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white placeholder-gray-500"
-                    placeholder="••••••••"
+                    placeholder="•••••••••"
                     value={formEdit.password || ""}
                     onChange={(e) => setFormEdit({ ...formEdit, password: e.target.value })}
                   />
@@ -443,6 +609,40 @@ export function GestionVen() {
                   <button type="submit" className="flex-1 bg-blue-600 text-white py-2 rounded font-bold">Actualizar Datos</button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* --- MODAL DE CONFLICTO DE RETAZOS --- */}
+        {mostrarModalConflicto && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-[#3a3b3c] to-[#2a2b2c] rounded-xl shadow-2xl p-8 border border-yellow-600 max-w-lg w-full text-center">
+              <div className="mb-4 text-yellow-500 text-5xl">
+                ⚠️
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-3">No se puede eliminar</h2>
+              <p className="text-gray-300 mb-6">
+                Esta vendedora tiene <strong className="text-white">retazos asociados</strong> en el sistema. 
+                Para eliminarla, debes reasignar estos retazos a tu cuenta de administrador.
+              </p>
+              <p className="text-gray-400 text-sm mb-8">
+                ¿Deseas asumir estos retazos y proceder con la eliminación?
+              </p>
+              
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => setMostrarModalConflicto(false)}
+                  className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+                >
+                  No, cancelar
+                </button>
+                <button
+                  onClick={handleConfirmarReasignacion}
+                  className="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors font-bold shadow-lg shadow-yellow-900/50"
+                >
+                  Sí, asumir y eliminar
+                </button>
+              </div>
             </div>
           </div>
         )}

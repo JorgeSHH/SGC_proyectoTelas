@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
-// ... otras importaciones ...
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { NavbarVen } from "../components/NavbarVen";
-import toast, { Toaster } from "react-hot-toast"; // Importación agregada
+import toast, { Toaster } from "react-hot-toast";
 import { SecureImage } from "../components/SecureImage";
+// 1. IMPORTACIÓN DE LA LIBRERÍA ESTABLE
+import { Html5Qrcode } from "html5-qrcode";
 
 export function ConsultaVen() {
   // --- Estados existentes ---
@@ -18,10 +19,16 @@ export function ConsultaVen() {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [mostrarPreview, setMostrarPreview] = useState(false);
 
+  // --- Estados para el Escáner ---
+  const [mostrarScanner, setMostrarScanner] = useState(false);
+
+  // Ref para limpiar el escáner al desmontar
+  const scannerRef = useRef(null);
+
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
 
-  // --- Fetch de Retazos (ACTUALIZADO) ---
+  // --- Fetch de Retazos ---
   const fetchRetazos = async () => {
     try {
       if (!token) return;
@@ -37,11 +44,7 @@ export function ConsultaVen() {
       );
       if (response.ok) {
         const data = await response.json();
-
-        // --- FILTRO DE ESTADO ACTIVO ---
-        // Solo guardamos los retazos donde active NO sea 0
         const retazosActivos = data.filter((retazo) => retazo.active !== 0);
-
         setRetazos(retazosActivos);
       }
     } catch (error) {
@@ -86,6 +89,70 @@ export function ConsultaVen() {
       return total + calcularPrecioRetazo(retazo);
     }, 0);
   };
+
+  // --- LÓGICA DEL ESCÁNER CON HTML5-QRCODE ---
+
+  // Función que se ejecuta cuando se lee un código
+  const handleScanSuccess = (decodedText) => {
+    const idEscaneado = decodedText;
+
+    // Buscar el retazo
+    const retazoEncontrado = retazos.find(
+      (r) => String(r.fabric_scrap_id) === String(idEscaneado),
+    );
+
+    if (retazoEncontrado) {
+      const yaSeleccionado = selectedRetazos.some(
+        (r) => r.fabric_scrap_id === retazoEncontrado.fabric_scrap_id,
+      );
+
+      if (!yaSeleccionado) {
+        toggleSelection(retazoEncontrado);
+        toast.success(`Retazo #${idEscaneado} agregado.`);
+        // Importante: Pausar y cerrar el escáner tras escanear
+        setMostrarScanner(false);
+      } else {
+        toast(`Retazo #${idEscaneado} ya está en la lista.`);
+      }
+    } else {
+      toast.error(`ID ${idEscaneado} no encontrado.`);
+    }
+  };
+
+  // Efecto para iniciar el escáner cuando se abre el modal
+  useEffect(() => {
+    if (mostrarScanner) {
+      // Pequeño retardo para asegurar que el div existe en el DOM
+      const timeoutId = setTimeout(() => {
+        const scanner = new Html5Qrcode("reader");
+        scannerRef.current = scanner;
+
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        // Iniciar cámara trasera
+        scanner
+          .start({ facingMode: "environment" }, config, handleScanSuccess)
+          .catch((err) => {
+            console.error("Error al iniciar cámara", err);
+            toast.error("No se pudo iniciar la cámara. Verifica permisos.");
+          });
+      }, 300);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    } else {
+      // Si se cierra el modal, detener el escáner
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current
+          .stop()
+          .then(() => {
+            scannerRef.current.clear();
+          })
+          .catch((err) => console.error("Error al detener escáner", err));
+      }
+    }
+  }, [mostrarScanner]); // Se ejecuta cada vez que cambia el estado del modal
 
   // --- FUNCIÓN PARA GENERAR PDF ---
   const generarPDF = () => {
@@ -183,19 +250,18 @@ export function ConsultaVen() {
       );
 
       if (response.ok) {
-        toast.success("Venta confirmada exitosamente"); // Cambio de alert a toast.success
+        toast.success("Venta confirmada exitosamente");
         setSelectedRetazos([]);
         setMostrarFactura(false);
         setPaginaActual(1);
-        // Recargamos para que los items desactivados (active=0) desaparezcan de la lista
         await fetchRetazos();
       } else {
         console.error("Error en la respuesta del servidor");
-        toast.error("Hubo un error al confirmar la venta."); // Cambio de alert a toast.error
+        toast.error("Hubo un error al confirmar la venta.");
       }
     } catch (error) {
       console.error("Error al conectar con el servidor:", error);
-      toast.error("Error de conexión al intentar confirmar la venta."); // Cambio de alert a toast.error
+      toast.error("Error de conexión al intentar confirmar la venta.");
     }
   };
 
@@ -251,7 +317,7 @@ export function ConsultaVen() {
 
   return (
     <>
-      <Toaster /> {/* Componente Toaster agregado */}
+      <Toaster />
       <NavbarVen />
       <div className="min-h-screen flex flex-col relative bg-gray-900">
         <div
@@ -284,6 +350,27 @@ export function ConsultaVen() {
                   className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
+
+              <button
+                onClick={() => setMostrarScanner(true)}
+                className="bg-[#ec4444] hover:bg-red-700 text-white px-4 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                  />
+                </svg>
+                Escanear QR
+              </button>
             </div>
 
             <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
@@ -292,7 +379,7 @@ export function ConsultaVen() {
                 return (
                   <div
                     key={retazo.fabric_scrap_id}
-                    className={`bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border transition-all duration-300 relative cursor-pointer 
+                    className={`bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-8 border transition-all duration-300 relative cursor-pointer 
                       ${isSelected(retazo.fabric_scrap_id) ? "border-blue-500 ring-2 ring-blue-500" : "border-gray-600 hover:border-[#ec4444]"}
                     `}
                     onClick={() => toggleSelection(retazo)}
@@ -357,14 +444,12 @@ export function ConsultaVen() {
                         <br />
                         <span className="text-white">{retazo.description}</span>
                       </p>
-                      {/* --- USO DEL COMPONENTE SEGURO --- */}
                       <div className="mt-4 flex justify-center">
                         <SecureImage
                           id={retazo.fabric_scrap_id}
                           className="w-80 h-80 rounded-lg opacity-80 object-contain"
                         />
                       </div>
-                      {/* --------------------------------- */}
                     </div>
                   </div>
                 );
@@ -402,6 +487,38 @@ export function ConsultaVen() {
             )}
           </div>
         </main>
+
+        {/* MODAL DE ESCÁNER QR (IMPLEMENTACIÓN HTML5-QRCODE) */}
+        {mostrarScanner && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
+            <div className="bg-[#3e3d3d] rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+              <div className="bg-[#262729] p-4 flex justify-between items-center border-b border-gray-600">
+                <h3 className="text-white font-bold text-lg">
+                  Escanear Retazo
+                </h3>
+                <button
+                  onClick={() => setMostrarScanner(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-4 bg-black flex flex-col items-center justify-center h-[400px] relative">
+                <div className="w-full h-full overflow-hidden rounded-lg border-2 border-red-500 relative">
+                  {/* Este div es donde html5-qrcode inyecta el video */}
+                  <div
+                    id="reader"
+                    className="w-full h-full"
+                    style={{ objectFit: "cover" }}
+                  ></div>
+                </div>
+                <p className="text-white mt-2 text-sm text-center opacity-80">
+                  Apunta el QR a la cámara
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {selectedRetazos.length > 0 && (
           <div className="fixed bottom-8 right-8 z-40 animate-bounce">

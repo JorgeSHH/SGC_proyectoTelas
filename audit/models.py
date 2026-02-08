@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import Administrator
+from django.core.serializers.json import DjangoJSONEncoder
 
 # Create your models here.
 
@@ -14,8 +15,8 @@ class record(models.Model):
     model_name = models.CharField(max_length=50)  # Ej: 'FabricScrap', 'Saleswoman'
     object_id = models.IntegerField()
     action_type = models.CharField(max_length= 50)
-    old_data = models.JSONField(null=True, blank=True)
-    new_data = models.JSONField(null=True, blank=True)
+    old_data = models.JSONField(encoder=DjangoJSONEncoder, null=True)
+    new_data = models.JSONField(encoder=DjangoJSONEncoder, null=True)   
     action_timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:

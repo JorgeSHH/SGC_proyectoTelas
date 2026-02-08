@@ -1,32 +1,34 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import jsPDF from "jspdf";
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { NavbarVen } from "../components/NavbarVen";
 import toast, { Toaster } from "react-hot-toast";
 import { SecureImage } from "../components/SecureImage";
-// 1. IMPORTACIÓN DE LA LIBRERÍA ESTABLE
 import { Html5Qrcode } from "html5-qrcode";
 
 export function ConsultaVen() {
-  // --- Estados existentes ---
   const [retazos, setRetazos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [selectedRetazos, setSelectedRetazos] = useState([]);
   const [mostrarFactura, setMostrarFactura] = useState(false);
 
-  // --- Estados para PDF ---
   const [pdfUrl, setPdfUrl] = useState(null);
   const [mostrarPreview, setMostrarPreview] = useState(false);
-
-  // --- Estados para el Escáner ---
   const [mostrarScanner, setMostrarScanner] = useState(false);
 
-  // Ref para limpiar el escáner al desmontar
   const scannerRef = useRef(null);
+  const retazosRef = useRef(retazos);
+  const selectedRetazosRef = useRef(selectedRetazos);
 
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
+
+  // --- Sincronizar Refs ---
+  useEffect(() => {
+    retazosRef.current = retazos;
+    selectedRetazosRef.current = selectedRetazos;
+  }, [retazos, selectedRetazos]);
 
   // --- Fetch de Retazos ---
   const fetchRetazos = async () => {
@@ -90,71 +92,117 @@ export function ConsultaVen() {
     }, 0);
   };
 
-  // --- LÓGICA DEL ESCÁNER CON HTML5-QRCODE ---
+  // --- LÓGICA DEL ESCÁNER CORREGIDA ---
 
-  // Función que se ejecuta cuando se lee un código
-  const handleScanSuccess = (decodedText) => {
-    const idEscaneado = decodedText;
+  const onScanFailure = useCallback((error) => {
+    // Ignorar errores de no encontrar QR
+  }, []);
 
-    // Buscar el retazo
-    const retazoEncontrado = retazos.find(
-      (r) => String(r.fabric_scrap_id) === String(idEscaneado),
+  const handleScanSuccess = useCallback((decodedText) => {
+    console.log("✅ QR ESCANEADO:", decodedText);
+
+    const idEscaneado = String(decodedText).trim();
+    const retazoEncontrado = retazosRef.current.find(
+      (r) => String(r.fabric_scrap_id) === idEscaneado,
     );
 
     if (retazoEncontrado) {
-      const yaSeleccionado = selectedRetazos.some(
+      const yaSeleccionado = selectedRetazosRef.current.some(
         (r) => r.fabric_scrap_id === retazoEncontrado.fabric_scrap_id,
       );
 
       if (!yaSeleccionado) {
         toggleSelection(retazoEncontrado);
         toast.success(`Retazo #${idEscaneado} agregado.`);
-        // Importante: Pausar y cerrar el escáner tras escanear
+
+        // --- FIX CRÍTICO ---
+        // Detener el escáner explícitamente ANTES de cerrar el modal
+        // para evitar que intente limpiar un DOM que ya no existe
+        if (scannerRef.current) {
+          scannerRef.current
+            .stop()
+            .then(() => {
+              scannerRef.current.clear();
+            })
+            .catch((err) => console.log("Error apagando escáner", err));
+        }
+        // ---------------------
+
         setMostrarScanner(false);
       } else {
         toast(`Retazo #${idEscaneado} ya está en la lista.`);
+
+        // Mismo fix si ya estaba seleccionado
+        if (scannerRef.current) {
+          scannerRef.current
+            .stop()
+            .then(() => {
+              scannerRef.current.clear();
+            })
+            .catch((err) => console.log("Error apagando escáner", err));
+        }
+        setMostrarScanner(false);
       }
     } else {
       toast.error(`ID ${idEscaneado} no encontrado.`);
     }
-  };
+  }, []);
 
-  // Efecto para iniciar el escáner cuando se abre el modal
+  // Efecto para iniciar el escáner
   useEffect(() => {
     if (mostrarScanner) {
-      // Pequeño retardo para asegurar que el div existe en el DOM
       const timeoutId = setTimeout(() => {
+        const readerElement = document.getElementById("reader");
+        if (!readerElement) {
+          toast.error("Error: Contenedor de video no encontrado.");
+          return;
+        }
+
         const scanner = new Html5Qrcode("reader");
         scannerRef.current = scanner;
 
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        // Configuración que funcionó
+        const config = {
+          fps: 5,
+          qrbox: { width: 500, height: 500 },
+          aspectRatio: 1.0,
+        };
 
-        // Iniciar cámara trasera
         scanner
-          .start({ facingMode: "environment" }, config, handleScanSuccess)
+          .start(
+            { facingMode: "environment" },
+            config,
+            handleScanSuccess,
+            onScanFailure,
+          )
           .catch((err) => {
-            console.error("Error al iniciar cámara", err);
-            toast.error("No se pudo iniciar la cámara. Verifica permisos.");
+            console.error("Error CRÍTICO al iniciar cámara", err);
+            toast.error("No se pudo iniciar la cámara.");
           });
-      }, 300);
+      }, 500);
 
       return () => {
         clearTimeout(timeoutId);
       };
     } else {
-      // Si se cierra el modal, detener el escáner
-      if (scannerRef.current && scannerRef.current.isScanning) {
-        scannerRef.current
-          .stop()
-          .then(() => {
-            scannerRef.current.clear();
-          })
-          .catch((err) => console.error("Error al detener escáner", err));
+      // Limpieza defensiva para el botón de cerrar (X)
+      // Usamos try-catch para evitar crash de pantalla blanca si el estado ya cambió
+      if (scannerRef.current) {
+        try {
+          scannerRef.current
+            .stop()
+            .then(() => {
+              scannerRef.current.clear().catch((err) => {}); // Ignorar error de clear
+            })
+            .catch((err) => {}); // Ignorar error de stop
+        } catch (e) {
+          console.warn("Error en cleanup:", e);
+        }
       }
     }
-  }, [mostrarScanner]); // Se ejecuta cada vez que cambia el estado del modal
+  }, [mostrarScanner, handleScanSuccess, onScanFailure]);
 
-  // --- FUNCIÓN PARA GENERAR PDF ---
+  // --- GENERADOR PDF ---
   const generarPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -230,7 +278,7 @@ export function ConsultaVen() {
     generarPDF();
   };
 
-  // --- FUNCIÓN MODIFICADA: CONFIRMAR VENTA (POST) ---
+  // --- CONFIRMAR VENTA ---
   const handleConfirmarVenta = async () => {
     const ids = selectedRetazos.map((r) => r.fabric_scrap_id);
 
@@ -275,7 +323,6 @@ export function ConsultaVen() {
     document.body.removeChild(link);
   };
 
-  // --- Filtrado ---
   const retazosFiltrados = retazos.filter((retazo) => {
     const termino = filtro.toLowerCase();
     const id = String(retazo.fabric_scrap_id || "");
@@ -295,7 +342,6 @@ export function ConsultaVen() {
     );
   });
 
-  // --- Lógica de Facturación ---
   const calcularPrecioRetazo = (retazo) => {
     const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
     const precioPorMetroCuadrado = retazo.fabric_type?.price_unit;
@@ -488,7 +534,7 @@ export function ConsultaVen() {
           </div>
         </main>
 
-        {/* MODAL DE ESCÁNER QR (IMPLEMENTACIÓN HTML5-QRCODE) */}
+        {/* MODAL ESCÁNER */}
         {mostrarScanner && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
             <div className="bg-[#3e3d3d] rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
@@ -505,15 +551,18 @@ export function ConsultaVen() {
               </div>
               <div className="p-4 bg-black flex flex-col items-center justify-center h-[400px] relative">
                 <div className="w-full h-full overflow-hidden rounded-lg border-2 border-red-500 relative">
-                  {/* Este div es donde html5-qrcode inyecta el video */}
                   <div
                     id="reader"
-                    className="w-full h-full"
-                    style={{ objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      minHeight: "300px",
+                      position: "relative",
+                    }}
                   ></div>
                 </div>
                 <p className="text-white mt-2 text-sm text-center opacity-80">
-                  Apunta el QR a la cámara
+                  Acerca el QR unos 15cm a la cámara
                 </p>
               </div>
             </div>
@@ -549,7 +598,6 @@ export function ConsultaVen() {
         {mostrarFactura && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-0 md:p-4 backdrop-blur-sm">
             <div className="bg-[#3e3d3d] w-full h-full md:h-auto md:max-w-3xl md:max-h-[90vh] flex flex-col overflow-hidden relative">
-              {/* Header Factura */}
               <div className="bg-grey-700 p-4 md:p-6 flex justify-between items-center shrink-0">
                 <div>
                   <h2 className="text-xl md:text-2xl font-bold text-white">
@@ -569,9 +617,7 @@ export function ConsultaVen() {
                 </div>
               </div>
 
-              {/* Área de Contenido Scrollable */}
               <div className="flex-1 overflow-y-auto bg-gray-500 p-0 relative">
-                {/* --- VISTA ESCRITORIO (Tabla) --- */}
                 <div className="hidden md:block w-full">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-200 sticky top-0">
@@ -643,14 +689,12 @@ export function ConsultaVen() {
                   </table>
                 </div>
 
-                {/* --- VISTA MÓVIL (Tarjetas/Cards) --- */}
                 <div className="block md:hidden p-4 space-y-4">
                   {selectedRetazos.map((item) => (
                     <div
                       key={item.fabric_scrap_id}
                       className="bg-[#3e3d3d] rounded-lg shadow-sm border border-gray-200 p-4 relative"
                     >
-                      {/* Header Card: ID + Boton Eliminar */}
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <span className="text-xs text-white font-bold uppercase">
@@ -681,7 +725,6 @@ export function ConsultaVen() {
                         </button>
                       </div>
 
-                      {/* Descripción */}
                       <div className="mb-3">
                         <span className="text-xs text-white font-bold uppercase block">
                           Tela
@@ -696,7 +739,6 @@ export function ConsultaVen() {
                         )}
                       </div>
 
-                      {/* Medidas y Precio */}
                       <div className="flex justify-between items-end border-t border-gray-100 pt-3 mt-2">
                         <div>
                           <span className="text-xs text-white font-bold uppercase block">
@@ -726,7 +768,6 @@ export function ConsultaVen() {
                 </div>
               </div>
 
-              {/* Footer Factura (Botones) */}
               <div className="p-4 w-full md:p-6 bg-black-500 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center shrink-0 gap-4">
                 <button
                   onClick={() => setMostrarFactura(false)}
@@ -785,11 +826,9 @@ export function ConsultaVen() {
           </div>
         )}
 
-        {/* Modal de Vista Previa PDF */}
         {mostrarPreview && pdfUrl && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-2 md:p-4 backdrop-blur-sm">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[95vh] md:h-[90vh] flex flex-col overflow-hidden">
-              {/* Header Preview */}
               <div className="bg-gray-800 p-4 flex justify-between items-center shrink-0">
                 <h3 className="text-white font-bold text-lg">
                   Vista Previa PDF
@@ -807,7 +846,6 @@ export function ConsultaVen() {
                 </div>
               </div>
 
-              {/* Iframe PDF Viewer */}
               <div className="flex-1 bg-gray-500 overflow-hidden">
                 <iframe
                   src={pdfUrl}

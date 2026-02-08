@@ -7,8 +7,12 @@ class AuditMixins:
     Mixin para registrar automaticamente cambios en los modelos.
     """
     def log_action(self, admin, action_type, instance, old_data=None):
-        new_data = model_to_dict(instance) if action_type != 'DELETE' else None
-
+        tipos_con_datos = ['CREATE', 'UPDATE', 'DEACTIVATE']
+        if action_type in tipos_con_datos: 
+            new_data = model_to_dict(instance) 
+        else:
+            new_data = None
+        
         record.objects.create(
             administrator = admin,
             action_type = action_type,

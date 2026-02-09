@@ -4,6 +4,7 @@ from .models import User, Saleswoman,Administrator
 from .serialeizers import SaleswomanSerialeizer, AdministratorSerialeizer
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db import transaction, IntegrityError 
 from .permissions import IsAdministrator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
@@ -18,7 +19,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
     queryset = Saleswoman.objects.all()
     serializer_class = SaleswomanSerialeizer
-
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['saleswoman_id', 'email']
+    search_fields = ['first_name','last_name','email','username']
 # configuracion para los filtros
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -69,8 +72,16 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
             self.perform_destroy(instance)
             return Response({
                 "status": "success",
-                "message": f"La vendedora con email {email_borrado} ha sido eliminada.",
+                "message": f"La vendedora con email {email_borrado} ha sido desactivada del sistema.",
             }, status=status.HTTP_200_OK)
+            
+            # AGREGA ESTE BLOQUE EXCEPT
+        except IntegrityError:
+            return Response({
+                "status": "error",
+                "message": "No se puede eliminar la vendedora porque tiene retazos asociados.",
+                "code": "HAS_RELATED_SCRAPS" # Un código para que el frontend identifique el error
+            }, status=status.HTTP_409_CONFLICT) # 409 Conflict es el código estándar para esto
             
         except serializers.ValidationError as e:
             return Response({
@@ -100,17 +111,22 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
         except Administrator.DoesNotExist:
             raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
 
+        User = get_user_model()
+        with transaction.atomic():
+            User.objects.filter(email = instance.email).update(is_active=False)
+            instance.status = False
+            instance.save()
+
+        instance.refresh_from_db()
+
         self.log_action(
             admin=admin_profile,
-            action_type='DELETE',
+            action_type='DEACTIVATE',
             instance= instance,
             old_data= old_data
                         
         )
-        User = get_user_model()
-        with transaction.atomic():
-            User.objects.filter(email = instance.email).delete()
-            instance.delete()
+        
             
 
     def perform_create(self, serializer):
@@ -271,6 +287,9 @@ class MiTokenObtainPairSerialeizer(TokenObtainPairSerializer):
     def validate(self, attrs):
         """ Validacion de las credenciales"""
         data = super().validate(attrs) # el attrs ese es donde estara el email y el password, aui mismo se hace la validacion
+
+        if not self.user.is_active:
+            raise serializers.ValidationError({"detail": "Este usuario está desactivado."})
 
         # parte de la respuesta al frotend recordarles que deben de guardar esto
         data['user'] = {

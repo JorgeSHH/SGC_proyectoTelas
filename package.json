@@ -3,8 +3,9 @@
     "chart.js": "^4.5.1",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
-    "xlsx": "^0.18.5",
     "react-chartjs-2": "^5.3.1",
-    "recharts": "^3.7.0"
+    "react-qr-reader": "^3.0.0-beta-1",
+    "recharts": "^3.7.0",
+    "xlsx": "^0.18.5"
   }
 }

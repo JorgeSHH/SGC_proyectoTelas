@@ -1,5 +1,7 @@
 from django.core.mail import send_mail
 from django.conf import settings
+import os
+from django.conf import settings
 
 def enviar_correo_bienvenida(email_vendedora, nombre, password_plana):
     asunto = "Bienvenida al Sistema de Gestion de Retazos"
@@ -26,3 +28,22 @@ def enviar_correo_bienvenida(email_vendedora, nombre, password_plana):
         [email_vendedora],
         fail_silently=False,
     )
+
+
+def guardar_pdf_referencial(archivo_pdf, nombre_archivo):
+    
+    ruta_carpeta = os.path.join(settings.MEDIA_ROOT, 'pdfs_vendedores')
+    
+   
+    if not os.path.exists(ruta_carpeta):
+        os.makedirs(ruta_carpeta)
+    
+
+    ruta_completa = os.path.join(ruta_carpeta, nombre_archivo)
+    
+
+    with open(ruta_completa, 'wb+') as destination:
+        for chunk in archivo_pdf.chunks():
+            destination.write(chunk)
+            
+    return ruta_completa

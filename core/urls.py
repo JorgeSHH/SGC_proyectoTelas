@@ -21,6 +21,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 from users import urls
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from utils import urls
 
 
 urlpatterns = [
@@ -35,5 +36,6 @@ urlpatterns = [
     
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/users/', include('users.urls')),
+    path('api/utils/', include('utils.urls')), 
 
 ]

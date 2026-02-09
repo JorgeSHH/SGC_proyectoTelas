@@ -22,6 +22,7 @@ from django.db.models.functions import TruncWeek
 from django.db import transaction
 from django.utils import timezone
 from decimal import Decimal, ROUND_HALF_UP
+from rest_framework import serializers
 import os 
 
 
@@ -112,33 +113,42 @@ class FabricScrapViewSet(viewsets.ModelViewSet, AuditMixins):
         serializer.instance = retazo
     
 
-    # ganchos para guardar en el log 
+    #ganchos para guardar en el log 
 
-    # def perform_update(self, serializer):
-    #     instance = self.get_object()
-    #     old_data = model_to_dict(instance)
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        old_data = model_to_dict(instance)
 
-    #     try:
-    #         admin_profile = Administrator.objects.get(email=self.request.user.email)
-    #     except Administrator.DoesNotExist:
-    #         raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
+        try:
+            admin_profile = Administrator.objects.get(email=self.request.user.email)
+        except Administrator.DoesNotExist:
+            raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
         
-    #     updated_instance = serializer.save()
+        updated_instance = serializer.save()
 
-    #     self.log_action(
-    #         admin=admin_profile, 
-    #         action_type='UPDATE', 
-    #         instance=updated_instance, 
-    #         old_data=old_data
-    #     )
+        self.log_action(
+            admin=admin_profile,
+            action_type='UPDATE', 
+            instance = updated_instance,
+            old_data=old_data
+        )
 
-    # def perform_destroy(self, instance):
-    #     user = self.request.user
-    #     old_data = model_to_dict(instance)
+    def perform_destroy(self, instance):
+        old_data = model_to_dict(instance)
 
-    #     self.log_action(admin=user, action_type='DELETE', instance=instance, old_data=old_data)
+        try:
+            admin_profile = Administrator.objects.get(email=self.request.user.email)
+        except Administrator.DoesNotExist:
+            raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
+
+        self.log_action(
+            admin=admin_profile, 
+            action_type='DELETE', 
+            instance=instance, 
+            old_data=old_data
+        )
         
-    #     instance.delete()
+        instance.delete()
 
 
 

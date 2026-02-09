@@ -213,7 +213,7 @@ export function RegistroRetazos() {
                     onChange={handleInputChange}
                     placeholder="0.00"
                     step="0.01"
-                    min="0"
+                    min="0.15"
                     className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
                     required
                   />
@@ -223,7 +223,7 @@ export function RegistroRetazos() {
                     htmlFor="width_meters"
                     className="block text-sm font-medium text-gray-300 mb-2"
                   >
-                    Alto (metros)
+                    Ancho (metros)
                   </label>
                   <input
                     type="number"
@@ -233,7 +233,7 @@ export function RegistroRetazos() {
                     onChange={handleInputChange}
                     placeholder="0.00"
                     step="0.01"
-                    min="0"
+                    min="0.15"
                     className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
                     required
                   />

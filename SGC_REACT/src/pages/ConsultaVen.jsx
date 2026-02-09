@@ -1,27 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import jsPDF from "jspdf";
-// ... otras importaciones ...
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { NavbarVen } from "../components/NavbarVen";
-import toast, { Toaster } from "react-hot-toast"; // Importación agregada
-import { SecureImage } from "../components/SecureImage"; 
+import toast, { Toaster } from "react-hot-toast";
+import { SecureImage } from "../components/SecureImage";
+import { Html5Qrcode } from "html5-qrcode";
 
 export function ConsultaVen() {
-  // --- Estados existentes ---
   const [retazos, setRetazos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [selectedRetazos, setSelectedRetazos] = useState([]);
   const [mostrarFactura, setMostrarFactura] = useState(false);
 
-  // --- Estados para PDF ---
   const [pdfUrl, setPdfUrl] = useState(null);
   const [mostrarPreview, setMostrarPreview] = useState(false);
+  const [mostrarScanner, setMostrarScanner] = useState(false);
+
+  const scannerRef = useRef(null);
+  const retazosRef = useRef(retazos);
+  const selectedRetazosRef = useRef(selectedRetazos);
 
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
 
-  // --- Fetch de Retazos (ACTUALIZADO) ---
+  // --- Sincronizar Refs ---
+  useEffect(() => {
+    retazosRef.current = retazos;
+    selectedRetazosRef.current = selectedRetazos;
+  }, [retazos, selectedRetazos]);
+
+  // --- Fetch de Retazos ---
   const fetchRetazos = async () => {
     try {
       if (!token) return;
@@ -37,11 +46,7 @@ export function ConsultaVen() {
       );
       if (response.ok) {
         const data = await response.json();
-
-        // --- FILTRO DE ESTADO ACTIVO ---
-        // Solo guardamos los retazos donde active NO sea 0
         const retazosActivos = data.filter((retazo) => retazo.active !== 0);
-
         setRetazos(retazosActivos);
       }
     } catch (error) {
@@ -81,20 +86,123 @@ export function ConsultaVen() {
     return selectedRetazos.some((r) => r.fabric_scrap_id === id);
   };
 
-  // --- Lógica de Facturación ---
-  const calcularPrecioRetazo = (retazo) => {
-    const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
-    const precioPorMetroCuadrado = 10.0;
-    return area * precioPorMetroCuadrado;
-  };
-
   const getTotalFactura = () => {
     return selectedRetazos.reduce((total, retazo) => {
       return total + calcularPrecioRetazo(retazo);
     }, 0);
   };
 
-  // --- FUNCIÓN PARA GENERAR PDF ---
+  // --- LÓGICA DEL ESCÁNER CORREGIDA ---
+
+  const onScanFailure = useCallback((error) => {
+    // Ignorar errores de no encontrar QR
+  }, []);
+
+  const handleScanSuccess = useCallback((decodedText) => {
+    console.log("✅ QR ESCANEADO:", decodedText);
+
+    const idEscaneado = String(decodedText).trim();
+    const retazoEncontrado = retazosRef.current.find(
+      (r) => String(r.fabric_scrap_id) === idEscaneado,
+    );
+
+    if (retazoEncontrado) {
+      const yaSeleccionado = selectedRetazosRef.current.some(
+        (r) => r.fabric_scrap_id === retazoEncontrado.fabric_scrap_id,
+      );
+
+      if (!yaSeleccionado) {
+        toggleSelection(retazoEncontrado);
+        toast.success(`Retazo #${idEscaneado} agregado.`);
+
+        // --- FIX CRÍTICO ---
+        // Detener el escáner explícitamente ANTES de cerrar el modal
+        // para evitar que intente limpiar un DOM que ya no existe
+        if (scannerRef.current) {
+          scannerRef.current
+            .stop()
+            .then(() => {
+              scannerRef.current.clear();
+            })
+            .catch((err) => console.log("Error apagando escáner", err));
+        }
+        // ---------------------
+
+        setMostrarScanner(false);
+      } else {
+        toast(`Retazo #${idEscaneado} ya está en la lista.`);
+
+        // Mismo fix si ya estaba seleccionado
+        if (scannerRef.current) {
+          scannerRef.current
+            .stop()
+            .then(() => {
+              scannerRef.current.clear();
+            })
+            .catch((err) => console.log("Error apagando escáner", err));
+        }
+        setMostrarScanner(false);
+      }
+    } else {
+      toast.error(`ID ${idEscaneado} no encontrado.`);
+    }
+  }, []);
+
+  // Efecto para iniciar el escáner
+  useEffect(() => {
+    if (mostrarScanner) {
+      const timeoutId = setTimeout(() => {
+        const readerElement = document.getElementById("reader");
+        if (!readerElement) {
+          toast.error("Error: Contenedor de video no encontrado.");
+          return;
+        }
+
+        const scanner = new Html5Qrcode("reader");
+        scannerRef.current = scanner;
+
+        // Configuración que funcionó
+        const config = {
+          fps: 5,
+          qrbox: { width: 500, height: 500 },
+          aspectRatio: 1.0,
+        };
+
+        scanner
+          .start(
+            { facingMode: "environment" },
+            config,
+            handleScanSuccess,
+            onScanFailure,
+          )
+          .catch((err) => {
+            console.error("Error CRÍTICO al iniciar cámara", err);
+            toast.error("No se pudo iniciar la cámara.");
+          });
+      }, 500);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    } else {
+      // Limpieza defensiva para el botón de cerrar (X)
+      // Usamos try-catch para evitar crash de pantalla blanca si el estado ya cambió
+      if (scannerRef.current) {
+        try {
+          scannerRef.current
+            .stop()
+            .then(() => {
+              scannerRef.current.clear().catch(() => {}); // Ignorar error de clear
+            })
+            .catch(() => {}); // Ignorar error de stop
+        } catch (e) {
+          console.warn("Error en cleanup:", e);
+        }
+      }
+    }
+  }, [mostrarScanner, handleScanSuccess, onScanFailure]);
+
+  // --- GENERADOR PDF ---
   const generarPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -170,7 +278,7 @@ export function ConsultaVen() {
     generarPDF();
   };
 
-  // --- FUNCIÓN MODIFICADA: CONFIRMAR VENTA (POST) ---
+  // --- CONFIRMAR VENTA ---
   const handleConfirmarVenta = async () => {
     const ids = selectedRetazos.map((r) => r.fabric_scrap_id);
 
@@ -190,19 +298,18 @@ export function ConsultaVen() {
       );
 
       if (response.ok) {
-        toast.success("Venta confirmada exitosamente"); // Cambio de alert a toast.success
+        toast.success("Venta confirmada exitosamente");
         setSelectedRetazos([]);
         setMostrarFactura(false);
         setPaginaActual(1);
-        // Recargamos para que los items desactivados (active=0) desaparezcan de la lista
         await fetchRetazos();
       } else {
         console.error("Error en la respuesta del servidor");
-        toast.error("Hubo un error al confirmar la venta."); // Cambio de alert a toast.error
+        toast.error("Hubo un error al confirmar la venta.");
       }
     } catch (error) {
       console.error("Error al conectar con el servidor:", error);
-      toast.error("Error de conexión al intentar confirmar la venta."); // Cambio de alert a toast.error
+      toast.error("Error de conexión al intentar confirmar la venta.");
     }
   };
 
@@ -216,7 +323,6 @@ export function ConsultaVen() {
     document.body.removeChild(link);
   };
 
-  // --- Filtrado ---
   const retazosFiltrados = retazos.filter((retazo) => {
     const termino = filtro.toLowerCase();
     const id = String(retazo.fabric_scrap_id || "");
@@ -236,6 +342,12 @@ export function ConsultaVen() {
     );
   });
 
+  const calcularPrecioRetazo = (retazo) => {
+    const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
+    const precioPorMetroCuadrado = retazo.fabric_type?.price_unit;
+    return area * precioPorMetroCuadrado;
+  };
+
   const totalPaginas = Math.ceil(retazosFiltrados.length / elementosPorPagina);
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const retazosPaginados = retazosFiltrados.slice(
@@ -251,7 +363,7 @@ export function ConsultaVen() {
 
   return (
     <>
-      <Toaster /> {/* Componente Toaster agregado */}
+      <Toaster />
       <NavbarVen />
       <div className="min-h-screen flex flex-col relative bg-gray-900">
         <div
@@ -284,16 +396,36 @@ export function ConsultaVen() {
                   className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
-              <ButtonExpTPT />
+
+              <button
+                onClick={() => setMostrarScanner(true)}
+                className="bg-[#ec4444] hover:bg-red-700 text-white px-4 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                  />
+                </svg>
+                Escanear QR
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
               {retazosPaginados.map((retazo) => {
                 const precio = calcularPrecioRetazo(retazo);
                 return (
                   <div
                     key={retazo.fabric_scrap_id}
-                    className={`bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border transition-all duration-300 relative cursor-pointer
+                    className={`bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-8 border transition-all duration-300 relative cursor-pointer 
                       ${isSelected(retazo.fabric_scrap_id) ? "border-blue-500 ring-2 ring-blue-500" : "border-gray-600 hover:border-[#ec4444]"}
                     `}
                     onClick={() => toggleSelection(retazo)}
@@ -321,31 +453,49 @@ export function ConsultaVen() {
                     </div>
 
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-ellipsis w-75">
-                        <span className="text-gray-400">Ancho:</span>
-                        <span className="text-white">
-                          {retazo.width_meters}m
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-ellipsis w-75">
-                        <span className="text-gray-400">Largo:</span>
-                        <span className="text-white">
-                          {retazo.length_meters}m
+                      <div className="flex justify-between ">
+                        <div>
+                          <span className="text-gray-400">Creador:</span>{" "}
+                          <span className="text-white">
+                            <span className="text-white">
+                              {retazo.created_by}
+                            </span>
+                          </span>
+                        </div>
+                        <span>
+                          <span className="text-gray-400">Rol:</span>{" "}
+                          <span className="text-white">
+                            {retazo.created_by_role}
+                          </span>
                         </span>
                       </div>
 
-                      <p className="text-gray-400 text-xs mt-2 truncate">
-                        {retazo.description}
+                      <div className="flex justify-between ">
+                        <span>
+                          <span className="text-gray-400">Ancho (metro):</span>{" "}
+                          <span className="text-white">
+                            {retazo.width_meters}
+                          </span>
+                        </span>
+                        <div>
+                          <span className="text-gray-400">Largo (metro):</span>{" "}
+                          <span className="text-white">
+                            {retazo.length_meters}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="break-words">
+                        <span className="text-gray-400">Descripcion:</span>{" "}
+                        <br />
+                        <span className="text-white">{retazo.description}</span>
                       </p>
-
-                      {/* --- USO DEL COMPONENTE SEGURO --- */}
                       <div className="mt-4 flex justify-center">
-                        <SecureImage 
-                          id={retazo.fabric_scrap_id} 
-                          className="w-80 h-80 rounded-lg opacity-80 object-contain" 
+                        <SecureImage
+                          id={retazo.fabric_scrap_id}
+                          className="w-80 h-80 rounded-lg opacity-80 object-contain"
                         />
                       </div>
-                      {/* --------------------------------- */}
                     </div>
                   </div>
                 );
@@ -384,6 +534,41 @@ export function ConsultaVen() {
           </div>
         </main>
 
+        {/* MODAL ESCÁNER */}
+        {mostrarScanner && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
+            <div className="bg-[#3e3d3d] rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+              <div className="bg-[#262729] p-4 flex justify-between items-center border-b border-gray-600">
+                <h3 className="text-white font-bold text-lg">
+                  Escanear Retazo
+                </h3>
+                <button
+                  onClick={() => setMostrarScanner(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-4 bg-black flex flex-col items-center justify-center h-[400px] relative">
+                <div className="w-full h-full overflow-hidden rounded-lg border-2 border-red-500 relative">
+                  <div
+                    id="reader"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      minHeight: "300px",
+                      position: "relative",
+                    }}
+                  ></div>
+                </div>
+                <p className="text-white mt-2 text-sm text-center opacity-80">
+                  Acerca el QR unos 15cm a la cámara
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {selectedRetazos.length > 0 && (
           <div className="fixed bottom-8 right-8 z-40 animate-bounce">
             <button
@@ -413,7 +598,6 @@ export function ConsultaVen() {
         {mostrarFactura && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-0 md:p-4 backdrop-blur-sm">
             <div className="bg-[#3e3d3d] w-full h-full md:h-auto md:max-w-3xl md:max-h-[90vh] flex flex-col overflow-hidden relative">
-              {/* Header Factura */}
               <div className="bg-grey-700 p-4 md:p-6 flex justify-between items-center shrink-0">
                 <div>
                   <h2 className="text-xl md:text-2xl font-bold text-white">
@@ -433,9 +617,7 @@ export function ConsultaVen() {
                 </div>
               </div>
 
-              {/* Área de Contenido Scrollable */}
               <div className="flex-1 overflow-y-auto bg-gray-500 p-0 relative">
-                {/* --- VISTA ESCRITORIO (Tabla) --- */}
                 <div className="hidden md:block w-full">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-200 sticky top-0">
@@ -507,14 +689,12 @@ export function ConsultaVen() {
                   </table>
                 </div>
 
-                {/* --- VISTA MÓVIL (Tarjetas/Cards) --- */}
                 <div className="block md:hidden p-4 space-y-4">
                   {selectedRetazos.map((item) => (
                     <div
                       key={item.fabric_scrap_id}
                       className="bg-[#3e3d3d] rounded-lg shadow-sm border border-gray-200 p-4 relative"
                     >
-                      {/* Header Card: ID + Boton Eliminar */}
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <span className="text-xs text-white font-bold uppercase">
@@ -545,7 +725,6 @@ export function ConsultaVen() {
                         </button>
                       </div>
 
-                      {/* Descripción */}
                       <div className="mb-3">
                         <span className="text-xs text-white font-bold uppercase block">
                           Tela
@@ -560,7 +739,6 @@ export function ConsultaVen() {
                         )}
                       </div>
 
-                      {/* Medidas y Precio */}
                       <div className="flex justify-between items-end border-t border-gray-100 pt-3 mt-2">
                         <div>
                           <span className="text-xs text-white font-bold uppercase block">
@@ -590,7 +768,6 @@ export function ConsultaVen() {
                 </div>
               </div>
 
-              {/* Footer Factura (Botones) */}
               <div className="p-4 w-full md:p-6 bg-black-500 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center shrink-0 gap-4">
                 <button
                   onClick={() => setMostrarFactura(false)}
@@ -649,11 +826,9 @@ export function ConsultaVen() {
           </div>
         )}
 
-        {/* Modal de Vista Previa PDF */}
         {mostrarPreview && pdfUrl && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-2 md:p-4 backdrop-blur-sm">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[95vh] md:h-[90vh] flex flex-col overflow-hidden">
-              {/* Header Preview */}
               <div className="bg-gray-800 p-4 flex justify-between items-center shrink-0">
                 <h3 className="text-white font-bold text-lg">
                   Vista Previa PDF
@@ -671,7 +846,6 @@ export function ConsultaVen() {
                 </div>
               </div>
 
-              {/* Iframe PDF Viewer */}
               <div className="flex-1 bg-gray-500 overflow-hidden">
                 <iframe
                   src={pdfUrl}

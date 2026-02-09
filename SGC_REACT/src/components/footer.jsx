@@ -11,7 +11,7 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left space-y-2 md:space-y-0">
             <div className="text-gray-400 text-xs">
               <p>
-                &copy; 2026 Sistema de Gestión de Telas. Todos los derechos
+                &copy; 2024 Sistema de Gestión de Telas. Todos los derechos
                 reservados a Armando Martinez, Ramses Barreto, Jorge holguin.
               </p>
               <p className="mt-0.5">

@@ -3,8 +3,6 @@ import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { Navbar } from "../components/Navbar";
 // Importamos el componente SecureImage
 import { SecureImage } from "../components/SecureImage";
-
-<Toaster />;
 export function GestionRetazo() {
   const [retazos, setRetazos] = useState([]);
   const [filtro, setFiltro] = useState("");
@@ -82,7 +80,7 @@ export function GestionRetazo() {
   // Ahora filtra explícitamente por fabric_scrap_id, created_by_role y created_by
   const retazosFiltradas = retazos.filter((retazo) => {
     const terminoBusqueda = filtro.toLowerCase();
-    
+
     // Convertimos a string y a minúsculas para comparar, usando || "" para evitar errores si es null
     const id = String(retazo.fabric_scrap_id || "").toLowerCase();
     const rol = String(retazo.created_by_role || "").toLowerCase();
@@ -351,9 +349,7 @@ export function GestionRetazo() {
 
                       <p>
                         <span className="text-gray-400">Precio:</span>{" "}
-                        <span className="text-white">
-                          ${precio.toFixed(2)}
-                        </span>
+                        <span className="text-white">${precio.toFixed(2)}</span>
                       </p>
 
                       <p>

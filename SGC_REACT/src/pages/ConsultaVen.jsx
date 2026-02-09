@@ -344,7 +344,7 @@ export function ConsultaVen() {
               <div className="flex-1">
                 <input
                   type="text"
-                  placeholder="Buscar por ID, Tipo de tela, Descripción..."
+                  placeholder="Buscar por ID, Rol o usuario que la registró"
                   value={filtro}
                   onChange={(e) => setFiltro(e.target.value)}
                   className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"

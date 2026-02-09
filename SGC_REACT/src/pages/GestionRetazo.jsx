@@ -79,12 +79,23 @@ export function GestionRetazo() {
     cargarTipos();
   }, []);
 
-  // --- Filtrado ---
-  const retazosFiltradas = retazos.filter((v) =>
-    Object.values(v).some((val) =>
-      String(val).toLowerCase().includes(filtro.toLowerCase()),
-    ),
-  );
+  // --- Filtrado MODIFICADO ---
+  // Ahora filtra explícitamente por fabric_scrap_id, created_by_role y created_by
+  const retazosFiltradas = retazos.filter((retazo) => {
+    const terminoBusqueda = filtro.toLowerCase();
+    
+    // Convertimos a string y a minúsculas para comparar, usando || "" para evitar errores si es null
+    const id = String(retazo.fabric_scrap_id || "").toLowerCase();
+    const rol = String(retazo.created_by_role || "").toLowerCase();
+    const creador = String(retazo.created_by || "").toLowerCase();
+
+    return (
+      id.includes(terminoBusqueda) ||
+      rol.includes(terminoBusqueda) ||
+      creador.includes(terminoBusqueda)
+    );
+  });
+  // -----------------------------
 
   const totalPaginas = Math.ceil(retazosFiltradas.length / elementosPorPagina);
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
@@ -288,7 +299,7 @@ export function GestionRetazo() {
               <div className="flex-1">
                 <input
                   type="text"
-                  placeholder="Buscar por ID, precio, tipo, fecha..."
+                  placeholder="Buscar por ID, Rol y usuario que lo registró"
                   value={filtro}
                   onChange={(e) => setFiltro(e.target.value)}
                   className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -370,7 +381,6 @@ export function GestionRetazo() {
                         <span className="text-gray-400">Precio:</span>{" "}
                         <span className="text-white">
                           ${precio.toFixed(2)}
-                          {/* Ajustado key basado en tu snippet */}
                         </span>
                       </p>
 
@@ -382,7 +392,6 @@ export function GestionRetazo() {
                         </span>
                       </p>
 
-                      {/* --- SECCIÓN MODIFICADA: QR DINÁMICO --- */}
                       <div className="mt-2 px-4 py-4 rounded-lg flex justify-center">
                         <SecureImage
                           id={retazos.fabric_scrap_id}
@@ -390,7 +399,6 @@ export function GestionRetazo() {
                           className="w-80 h-80 object-contain rounded-lg"
                         />
                       </div>
-                      {/* ------------------------------------- */}
                     </div>
                     <div className="flex gap-2 mt-6">
                       <button

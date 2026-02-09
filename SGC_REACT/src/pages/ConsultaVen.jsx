@@ -5,6 +5,7 @@ import { NavbarVen } from "../components/NavbarVen";
 import toast, { Toaster } from "react-hot-toast";
 import { SecureImage } from "../components/SecureImage";
 import { Html5Qrcode } from "html5-qrcode";
+import Logo from "../assets/castillo logo.jpg";
 
 export function ConsultaVen() {
   const [retazos, setRetazos] = useState([]);
@@ -16,6 +17,7 @@ export function ConsultaVen() {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [mostrarPreview, setMostrarPreview] = useState(false);
   const [mostrarScanner, setMostrarScanner] = useState(false);
+  const [tasaDolar, setTasaDolar] = useState(1);
 
   const scannerRef = useRef(null);
   const retazosRef = useRef(retazos);
@@ -23,6 +25,8 @@ export function ConsultaVen() {
 
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
+
+  const userData = JSON.parse(localStorage.getItem("user")) || { username: "ADMIN" };
 
   // --- Sincronizar Refs ---
   useEffect(() => {
@@ -49,14 +53,27 @@ export function ConsultaVen() {
         const retazosActivos = data.filter((retazo) => retazo.active !== 0);
         setRetazos(retazosActivos);
       }
+     
+
+    const resDolar = await fetch("http://127.0.0.1:8000/api/utils/dollar/", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (resDolar.ok) {
+      const dataDolar = await resDolar.json();
+      setTasaDolar(dataDolar.rate || 1);
+    }
     } catch (error) {
-      console.error("Error al obtener datos: ", error);
+    console.error("Error al cargar datos iniciales:", error);
     }
   };
+
+  
 
   useEffect(() => {
     fetchRetazos();
   }, []);
+
 
   useEffect(() => {
     return () => {
@@ -87,9 +104,7 @@ export function ConsultaVen() {
   };
 
   const getTotalFactura = () => {
-    return selectedRetazos.reduce((total, retazo) => {
-      return total + calcularPrecioRetazo(retazo);
-    }, 0);
+    return selectedRetazos.reduce((total, r) => total + calcularPrecioRetazo(r), 0);
   };
 
   // --- LÓGICA DEL ESCÁNER CORREGIDA ---
@@ -206,68 +221,85 @@ export function ConsultaVen() {
   const generarPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
     let y = 20;
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("FACTURA PROFORMA", pageWidth / 2, y, { align: "center" });
+    doc.addImage(Logo, 'PNG', (pageWidth/2)-15, y, 30, 30);
+    y += 40;
+
+    // 1. Título 
+    doc.setFont("courier", "bold");
+    doc.setFontSize(24);
+    doc.text("Factura proforma", pageWidth / 2, y, { align: "center" });
+    
+    y += 8;
+    doc.setFontSize(10);
+    doc.setFont("courier", "normal");
+    doc.setTextColor(100);
+    doc.text("Estamos para ti...", pageWidth / 2, y, { align: "center" });
+
+    // 2. Datos de Vendedora y Fecha
     y += 15;
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Cliente: 10/CLIENTE GENERAL`, margin, y);
-    doc.text(
-      `Fecha: ${new Date().toLocaleDateString()}`,
-      pageWidth - margin,
-      y,
-      { align: "right" },
-    );
-    y += 10;
-
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 10;
-
-    selectedRetazos.forEach((item) => {
-      const precio = calcularPrecioRetazo(item).toFixed(2);
-      const descripcion = `${item.fabric_type?.name || "Tela"} ${item.description ? `- ${item.description}` : ""}`;
-      const medidas = `${item.length_meters}m x ${item.width_meters}m`;
-
-      doc.setFont("helvetica", "bold");
-      doc.text(`${item.fabric_scrap_id}/`, margin, y);
-
-      doc.setFont("helvetica", "normal");
-      const splitDesc = doc.splitTextToSize(`${descripcion} ${medidas}`, 120);
-      doc.text(splitDesc, margin + 15, y);
-
-      doc.text(`$${precio}`, pageWidth - margin, y, { align: "right" });
-
-      y += splitDesc.length * 7 + 5;
-
-      doc.setDrawColor(200);
-      doc.setLineWidth(0.2);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 10;
-    });
-
-    y += 5;
+    doc.setTextColor(0);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("TOTAL A PAGAR:", pageWidth - 60, y, { align: "right" });
-    doc.text(`$ ${getTotalFactura().toFixed(2)}`, pageWidth - margin, y, {
-      align: "right",
+    doc.text("Vendedora:", 20, y);
+    doc.text("Fecha:", pageWidth - 20, y, { align: "right" });
+    
+    y += 6;
+    doc.setFont("helvetica", "normal");
+    // Usamos el username extraído del localStorage
+    doc.text(`${userData.username.toUpperCase()}`, 20, y);
+    doc.text(new Date().toLocaleDateString(), pageWidth - 20, y, { align: "right" });
+
+    // 3. Línea Separadora Roja (Estilo de tu captura)
+    y += 10;
+    doc.setDrawColor(216, 68, 68);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+
+    // 4. Listado de Productos
+    selectedRetazos.forEach((item) => {
+      const precio = calcularPrecioRetazo(item);
+      
+      doc.setFont("helvetica", "bold");
+      doc.text(`${item.fabric_scrap_id}/`, 20, y);
+      
+      doc.setFont("helvetica", "normal");
+      const desc = `${item.fabric_type?.name} - ${item.length_meters}m x ${item.width_meters}m`;
+      doc.text(desc, 35, y);
+      
+      doc.text(`${precio.toFixed(2)}$`, pageWidth - 20, y, { align: "right" });
+      y += 8;
     });
 
+    // 5. Totales (Dólares y Bolívares)
+    const totalUSD = getTotalFactura();
+    const totalBS = totalUSD * tasaDolar;
+
+    y += 10;
+    doc.setDrawColor(216, 68, 68);
+    doc.line(20, y, pageWidth - 20, y);
+    
+    y += 15;
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Total:", 20, y);
+    
+    // Monto en Bolívares destacado
+    const totalBsFormateado = totalBS.toLocaleString('es-VE', { minimumFractionDigits: 2 });
+    doc.text(`${totalBsFormateado} bs`, pageWidth - 45, y, { align: "right" });
+    
+    // Monto en Dólares al final
+    doc.text(`${totalUSD.toFixed(0)}$`, pageWidth - 20, y, { align: "right" });
+
+    // 6. Pie de página
     y += 20;
     doc.setFontSize(9);
-    doc.setFont("helvetica", "italic");
-    doc.text(
-      "Este documento no es una factura fiscal válida. Es una proforma de venta.",
-      margin,
-      y,
-    );
+    doc.setFont("courier", "normal");
+    doc.setTextColor(150);
+    doc.text(`tasa de cambio: ${tasaDolar.toFixed(4)} >> 1$`, pageWidth / 2, y, { align: "center" });
+    y += 5;
+    doc.text("No se debe botar, guardar para el administrador", pageWidth / 2, y, { align: "center" });
 
     const pdfBlob = doc.output("bloburl");
     setPdfUrl(pdfBlob);

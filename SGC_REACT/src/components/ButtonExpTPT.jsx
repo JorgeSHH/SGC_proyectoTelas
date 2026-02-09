@@ -176,7 +176,7 @@ export function ButtonExpTPT() {
       <button
         onClick={handleExportExcel}
         disabled={loading}
-        className={`bg-gradient-to-r  from-[#68bf74]/80 to-[#68bf74] hover:from-[#5aaf64] hover:to-[#5aaf64] text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300  hover:brightness-110 shadow-lg flex items-center gap-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`flex-1 bg-gradient-to-r from-[#68bf74]/80 to-[#68bf74] hover:from-[#5aaf64] hover:to-[#5aaf64] text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -195,7 +195,7 @@ export function ButtonExpTPT() {
       <button
         onClick={handleExportPDF}
         disabled={loading}
-        className={`bg-gradient-to-r from-[#3a3b3c]/70 to-[#3a3b3c]/70 hover:from-[#4a4b4c] hover:to-[#4a4b4c]/70 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:brightness-110 shadow-lg flex items-center gap-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`flex-1 bg-gradient-to-r from-[#3a3b3c]/70 to-[#3a3b3c]/70 hover:from-[#4a4b4c] hover:to-[#4a4b4c]/70 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

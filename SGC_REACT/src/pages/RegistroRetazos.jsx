@@ -159,43 +159,52 @@ export function RegistroRetazos() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* SELECT DINÁMICO - CORREGIDO KEYS Y MAYÚSCULAS */}
-              <div>
-                <label
-                  htmlFor="fabric_type_id"
-                  className="block text-sm font-medium text-gray-300 mb-2"
-                >
-                  Tipo de Tela
-                </label>
-                <select
-                  id="fabric_type_id"
-                  name="fabric_type_id"
-                  value={formData.fabric_type_id}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
-                  required
-                  disabled={loading}
-                >
-                  {/* CORRECCIÓN 1: Agregada key="default" para arreglar la advertencia */}
-                  <option value="" key="default">
-                    Selecciona un tipo...
-                  </option>
+              <div className="w-full sm:w-3/4 md:w-2/3 lg:w-1/2 mx-auto">
+  <label
+    htmlFor="fabric_type_id"
+    className="block text-sm sm:text-base md:text-lg font-medium text-gray-300 mb-2"
+  >
+    Tipo de Tela
+  </label>
+  <select
+    id="fabric_type_id"
+    name="fabric_type_id"
+    value={formData.fabric_type_id}
+    onChange={handleInputChange}
+    className="
+      w-full 
+      px-3 py-2 sm:px-4 sm:py-3 
+      bg-[#262729] 
+      border border-gray-600 
+      rounded-lg 
+      text-white 
+      focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent 
+      transition-all duration-200
+    "
+    required
+    disabled={loading}
+  >
+    <option value="" key="default">
+      Selecciona un tipo...
+    </option>
 
-                  {/* CORRECCIÓN 2: Usamos 'Fabric_Type_id' (Mayúsculas) como en tu código funcional */}
-                  {tiposTela.map((tipo) => (
-                    <option
-                      key={tipo.Fabric_Type_id}
-                      value={tipo.Fabric_Type_id}
-                    >
-                      {tipo.name} ({tipo.material_type})
-                    </option>
-                  ))}
-                </select>
-                {loading && tiposTela.length === 0 && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Cargando tipos...
-                  </p>
-                )}
-              </div>
+    {tiposTela.map((tipo) => (
+      <option
+        key={tipo.Fabric_Type_id}
+        value={tipo.Fabric_Type_id}
+      >
+        {tipo.name} ({tipo.material_type})
+      </option>
+    ))}
+  </select>
+
+  {loading && tiposTela.length === 0 && (
+    <p className="text-xs sm:text-sm text-gray-400 mt-1">
+      Cargando tipos...
+    </p>
+  )}
+</div>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

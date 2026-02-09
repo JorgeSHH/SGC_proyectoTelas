@@ -66,31 +66,64 @@ export function GestionVen() {
     }
   };
 
-  //elimina vendedora
-  const handleEliminar = async (saleswoman_id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar a esta vendedora? Esta acción no se puede deshacer.")) {
-      try {
-        const response = await fetch(`http://127.0.0.1:8000/api/users/saleswoman/${saleswoman_id}/`, {
-          method: "DELETE",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          toast.success("Vendedora eliminada exitosamente");
-          setSalesWoman(salesWoman.filter(v => v.saleswoman_id !== saleswoman_id));
-        } else {
-          const errorData = await response.json();
-          toast.error("Error al eliminar: " + (errorData.detail || "No se pudo completar la acción"));
-        }
-      } catch (error) {
-        console.error("Error en la petición:", error);
-        toast.error("Error de conexión al intentar eliminar.");
-      }
-    }
+  // Función que muestra el Toast de confirmación con el estilo solicitado
+  const handleEliminar = (saleswoman_id) => {
+    toast((t) => (
+      <span className="flex flex-col sm:flex-row items-center gap-3">
+        <span className="text-sm">
+          ¿Estás seguro de <b>eliminar</b> esta vendedora?
+        </span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-200 text-black px-2 py-1 rounded text-xs font-semibold hover:bg-gray-300 transition-colors"
+          >
+            No
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              ejecutarEliminacion(saleswoman_id); // Llamamos a la lógica de la API
+            }}
+            className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold hover:bg-red-700 transition-colors shadow-md"
+          >
+            Sí, eliminar
+          </button>
+        </div>
+      </span>
+    ), {
+      duration: 5000,
+      position: "top-center",
+      style: {
+        background: "#2a2b2c", // Fondo oscuro para combinar con tu dashboard
+        color: "#fff",
+        border: "1px solid #ec4444",
+      },
+    });
   };
 
+  // Función separada que contiene la lógica de la API (DELETE)
+  const ejecutarEliminacion = async (saleswoman_id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/users/saleswoman/${saleswoman_id}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Vendedora eliminada exitosamente");
+        setSalesWoman(salesWoman.filter(v => v.saleswoman_id !== saleswoman_id));
+      } else {
+        const errorData = await response.json();
+        toast.error("Error al eliminar: " + (errorData.detail || "No se pudo completar la acción"));
+      }
+    } catch (error) {
+      console.error("Error en la petición:", error);
+      toast.error("Error de conexión al intentar eliminar.");
+    }
+  };
   //edicion de vendedoras
   const [vendedoraEditando, setVendedoraEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({});

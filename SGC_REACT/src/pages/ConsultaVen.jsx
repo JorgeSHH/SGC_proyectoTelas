@@ -399,7 +399,8 @@ export function ConsultaVen() {
 
               <button
                 onClick={() => setMostrarScanner(true)}
-                className="bg-[#ec4444] hover:bg-red-700 text-white px-4 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
+                className="bg-white hover:bg-gray-200 text-[#ec4444] px-4 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
+
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

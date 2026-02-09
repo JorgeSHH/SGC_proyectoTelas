@@ -4,6 +4,7 @@ from .models import User, Saleswoman,Administrator
 from .serialeizers import SaleswomanSerialeizer, AdministratorSerialeizer
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db import transaction, IntegrityError 
 from .permissions import IsAdministrator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
@@ -18,7 +19,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
     queryset = Saleswoman.objects.all()
     serializer_class = SaleswomanSerialeizer
-
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['saleswoman_id', 'email']
+    search_fields = ['first_name','last_name','email','username']
 # configuracion para los filtros
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -71,6 +74,14 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
                 "status": "success",
                 "message": f"La vendedora con email {email_borrado} ha sido desactivada del sistema.",
             }, status=status.HTTP_200_OK)
+            
+            # AGREGA ESTE BLOQUE EXCEPT
+        except IntegrityError:
+            return Response({
+                "status": "error",
+                "message": "No se puede eliminar la vendedora porque tiene retazos asociados.",
+                "code": "HAS_RELATED_SCRAPS" # Un código para que el frontend identifique el error
+            }, status=status.HTTP_409_CONFLICT) # 409 Conflict es el código estándar para esto
             
         except serializers.ValidationError as e:
             return Response({

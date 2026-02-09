@@ -72,7 +72,7 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
             self.perform_destroy(instance)
             return Response({
                 "status": "success",
-                "message": f"La vendedora con email {email_borrado} ha sido eliminada.",
+                "message": f"La vendedora con email {email_borrado} ha sido desactivada del sistema.",
             }, status=status.HTTP_200_OK)
             
             # AGREGA ESTE BLOQUE EXCEPT
@@ -111,17 +111,22 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
         except Administrator.DoesNotExist:
             raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
 
+        User = get_user_model()
+        with transaction.atomic():
+            User.objects.filter(email = instance.email).update(is_active=False)
+            instance.status = False
+            instance.save()
+
+        instance.refresh_from_db()
+
         self.log_action(
             admin=admin_profile,
-            action_type='DELETE',
+            action_type='DEACTIVATE',
             instance= instance,
             old_data= old_data
                         
         )
-        User = get_user_model()
-        with transaction.atomic():
-            User.objects.filter(email = instance.email).delete()
-            instance.delete()
+        
             
 
     def perform_create(self, serializer):
@@ -282,6 +287,9 @@ class MiTokenObtainPairSerialeizer(TokenObtainPairSerializer):
     def validate(self, attrs):
         """ Validacion de las credenciales"""
         data = super().validate(attrs) # el attrs ese es donde estara el email y el password, aui mismo se hace la validacion
+
+        if not self.user.is_active:
+            raise serializers.ValidationError({"detail": "Este usuario está desactivado."})
 
         # parte de la respuesta al frotend recordarles que deben de guardar esto
         data['user'] = {

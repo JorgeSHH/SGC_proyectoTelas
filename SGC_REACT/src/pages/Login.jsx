@@ -123,9 +123,7 @@ export const Login = () => {
               <a
                 href="#"
                 className="block mt-5 text-indigo-500 text-sm hover:underline"
-              >
-                ¿Olvidaste tu contraseña?
-              </a>
+              ></a>
             </form>
           </div>
         </div>

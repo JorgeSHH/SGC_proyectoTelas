@@ -154,118 +154,12 @@ export function GestionVen() {
         console.error("Error en la petición:", error);
         toast.error("Error de conexión al intentar eliminar.");
       }
-    }
-  };
-
-  // --- CONFIRMAR REASIGNACIÓN Y ELIMINACIÓN ---
-  const handleConfirmarReasignacion = async () => {
-    if (!vendedoraIdConflicto) return;
-
-    toast.loading("Identificando usuario...", { id: "reassign-toast" });
-
-    // Usamos la función maestra que intenta Token y luego API
-    const adminUserId = await getAdminUserId();
-
-    if (!adminUserId) {
-      toast.error("Error: No se pudo encontrar tu ID de usuario. Revisa la consola (F12).", { id: "reassign-toast" });
-      return;
-    }
-
-    console.log(`✅ ID encontrado para reasignación: ${adminUserId}`);
-    toast.loading("Procesando reasignación de retazos...", { id: "reassign-toast" });
-
-    try {
-      // 1. Consultar retazos
-      const urlConsulta = `${URL_API_RETZOS}?${NOMBRE_CAMPO_FILTRO}=${vendedoraIdConflicto}`;
-      console.log("🔍 Consultando retazos en:", urlConsulta);
-      
-      const resRetazos = await fetch(urlConsulta, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (!resRetazos.ok) {
-         throw new Error(`Error ${resRetazos.status} consultando retazos.`);
-      }
-      
-      const dataRetazos = await resRetazos.json();
-      const listaRetazos = dataRetazos.results || dataRetazos;
-      console.log(`🔍 Se encontraron ${listaRetazos.length} retazos.`);
-
-      // 2. Reasignar
-      if (listaRetazos.length > 0) {
-        console.log(`🔄 Iniciando reasignación al ID: ${adminUserId}`);
-        const baseUrl = URL_API_RETZOS.replace(/\/+$/, ''); 
-
-        const promesasUpdate = listaRetazos.map(async (retazo) => {
-          const idRetazo = retazo.fabric_scrap_id || retazo.id;
-          
-          if (!idRetazo) {
-            console.error("❌ Retazo sin ID:", retazo);
-            return Promise.resolve({ success: false, id: null });
-          }
-
-          const updateUrl = `${baseUrl}/${idRetazo}/`;
-          const payload = { [NOMBRE_CAMPO_FILTRO]: Number(adminUserId) }; 
-
-          console.log(`   -> PATCH ${updateUrl} con BODY:`, payload);
-
-          try {
-            const res = await fetch(updateUrl, {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-              },
-              body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) {
-                const errorText = await res.text();
-                console.error(`   ❌ FALLO (Status ${res.status}):`, errorText);
-                return { success: false, id: idRetazo, error: errorText };
-            } else {
-                console.log(`   ✅ Éxito retazo ${idRetazo}`);
-                return { success: true, id: idRetazo };
-            }
-          } catch (err) {
-            console.error(`   ❌ Error red retazo ${idRetazo}:`, err);
-            return { success: false, id: idRetazo, error: err.message };
-          }
-        });
-        
-        const resultados = await Promise.all(promesasUpdate);
-        const fallos = resultados.filter(r => !r.success);
-        
-        if (fallos.length > 0) {
-            throw new Error(`${fallos.length} retazos fallaron. Verifica que el ID ${adminUserId} exista en Users.`);
-        }
-      }
-
-      // 3. Eliminar vendedora
-      console.log("🗑️ Eliminando vendedora ID:", vendedoraIdConflicto);
-      const resDelete = await fetch(`http://127.0.0.1:8000/api/users/saleswoman/${vendedoraIdConflicto}/`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (resDelete.ok) {
-        toast.success("Vendedora eliminada y retazos reasignados", { id: "reassign-toast" });
-        setMostrarModalConflicto(false);
-        setVendedoraIdConflicto(null);
-        cargarVendedoras();
-      } else {
-        const err = await resDelete.json();
-        console.error("❌ Error final:", err);
-        toast.error("Error al eliminar: " + (err.message || err.detail || ""), { id: "reassign-toast" });
-      }
-
     } catch (error) {
-      console.error("❌ Error general:", error);
-      toast.error(error.message, { id: "reassign-toast" });
+      console.error("Error en la petición:", error);
+      toast.error("Error de conexión al intentar eliminar.");
     }
   };
-
-  // --- EDICIÓN ---
+  //edicion de vendedoras
   const [vendedoraEditando, setVendedoraEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({});
 

@@ -2,11 +2,18 @@ import React, { useState } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
-// CORRECCIÓN: Importamos autoTable explícitamente
 import { autoTable } from "jspdf-autotable";
 
 export function ButtonExpTPT() {
   const [loading, setLoading] = useState(false);
+
+  // --- 1. AGREGAMOS LA FUNCIÓN DE CÁLCULO AQUÍ ---
+  const calcularPrecioRetazo = (retazo) => {
+    const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
+    // Usamos || 0 para evitar NaN si no hay precio unitario
+    const precioPorMetroCuadrado = retazo.fabric_type?.price_unit || 0;
+    return area * precioPorMetroCuadrado;
+  };
 
   const fetchData = async () => {
     try {
@@ -45,19 +52,23 @@ export function ButtonExpTPT() {
     const data = await fetchData();
 
     if (data && data.length > 0) {
-      // --- PASO 1: Procesar los datos antes de pasarlos a Excel ---
       const dataProcesada = data.map((item) => {
+        // Usamos 'item' original para calcular antes de modificarlo
+        const precioCalculado = calcularPrecioRetazo(item).toFixed(2);
         const itemCopia = { ...item };
+
+        // --- AGREGAR CAMBIO AQUÍ: Inyectar precio ---
+        itemCopia.precio = precioCalculado;
+        // -------------------------------------------
 
         // 1. Transformación de Booleano a Texto para 'active'
         if (itemCopia.active === true) {
           itemCopia.active = "activo";
         } else {
-          // Si es false, undefined o null, ponemos "inactivo"
           itemCopia.active = "inactivo";
         }
 
-        // 2. Corrección para evitar [object Object] en Excel (si aplica)
+        // 2. Corrección para evitar [object Object]
         if (
           itemCopia.fabric_type &&
           typeof itemCopia.fabric_type === "object"
@@ -77,7 +88,6 @@ export function ButtonExpTPT() {
         return itemCopia;
       });
 
-      // --- PASO 2: Crear el Excel con los datos ya procesados ---
       const worksheet = XLSX.utils.json_to_sheet(dataProcesada);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Retazos");
@@ -97,11 +107,11 @@ export function ButtonExpTPT() {
       doc.setFontSize(10);
       doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 22);
 
-      // --- PASO 1: Procesar y limpiar los datos ---
       const dataProcesada = data.map((item) => {
+        const precioCalculado = calcularPrecioRetazo(item).toFixed(2);
         const itemCopia = { ...item };
+        itemCopia.precio = precioCalculado;
 
-        // 1. Corrección de [object Object] para fabric_type
         if (
           itemCopia.fabric_type &&
           typeof itemCopia.fabric_type === "object"
@@ -118,19 +128,31 @@ export function ButtonExpTPT() {
             itemCopia.fabric_type_id.Fabric_Type_id;
         }
 
-        // 2. Transformación de Booleano a Texto para 'active'
         if (itemCopia.active === true) {
           itemCopia.active = "activo";
         } else {
-          // Si es false o undefined, ponemos "inactivo" (o vacío "" si prefieres)
           itemCopia.active = "inactivo";
         }
 
         return itemCopia;
       });
 
-      // --- PASO 2: Crear la tabla ---
+      // Obtenemos las columnas
       const tableColumn = Object.keys(dataProcesada[0]);
+
+      // --- CAMBIO: Encontramos el índice de la descripción ---
+      const descIndex = tableColumn.indexOf("description");
+
+      // Definimos estilos específicos para columnas
+      const columnStyles = {};
+      if (descIndex !== -1) {
+        columnStyles[descIndex] = {
+          cellWidth: 35, // Ancho fijo para la descripción (puedes cambiar este valor)
+          cellOverflow: "linebreak", // Hace que el texto baje de línea si es largo
+        };
+      }
+      // -------------------------------------------------------
+
       const tableRows = dataProcesada.map((row) => Object.values(row));
 
       autoTable(doc, {
@@ -138,6 +160,9 @@ export function ButtonExpTPT() {
         body: tableRows,
         startY: 30,
         styles: { fontSize: 8 },
+        // --- AQUÍ APLICAMOS LOS ESTILOS ---
+        columnStyles: columnStyles,
+        // -------------------------------
       });
 
       doc.save("Retazos.pdf");
@@ -151,7 +176,7 @@ export function ButtonExpTPT() {
       <button
         onClick={handleExportExcel}
         disabled={loading}
-        className={`bg-gradient-to-r  from-[#68bf74]/80 to-[#68bf74] hover:from-[#5aaf64] hover:to-[#5aaf64] text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300  hover:brightness-110 shadow-lg flex items-center gap-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`flex-1 bg-gradient-to-r from-[#68bf74]/80 to-[#68bf74] hover:from-[#5aaf64] hover:to-[#5aaf64] text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -170,7 +195,7 @@ export function ButtonExpTPT() {
       <button
         onClick={handleExportPDF}
         disabled={loading}
-        className={`bg-gradient-to-r from-[#3a3b3c]/70 to-[#3a3b3c]/70 hover:from-[#4a4b4c] hover:to-[#4a4b4c]/70 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:brightness-110 shadow-lg flex items-center gap-2 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`flex-1 bg-gradient-to-r from-[#3a3b3c]/70 to-[#3a3b3c]/70 hover:from-[#4a4b4c] hover:to-[#4a4b4c]/70 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:brightness-110 shadow-lg flex items-center justify-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

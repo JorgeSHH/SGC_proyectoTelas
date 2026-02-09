@@ -44,12 +44,21 @@ export function RegistroTiposTela() {
     fetchTiposTelas();
   }, []);
 
-  // --- Filtrado ---
-  const tiposDeTelasFiltradas = tiposDeTelas.filter((v) =>
-    Object.values(v).some((val) =>
-      String(val).toLowerCase().includes(filtro.toLowerCase()),
-    ),
-  );
+  // --- Filtrado MODIFICADO ---
+  // Ahora filtra explícitamente por Fabric_Type_id, name y description
+  const tiposDeTelasFiltradas = tiposDeTelas.filter((tipo) => {
+    const terminoBusqueda = filtro.toLowerCase();
+
+    const id = String(tipo.Fabric_Type_id || "").toLowerCase();
+    const nombre = String(tipo.name || "").toLowerCase();
+    const descripcion = String(tipo.description || "").toLowerCase();
+
+    return (
+      id.includes(terminoBusqueda) ||
+      nombre.includes(terminoBusqueda) ||
+      descripcion.includes(terminoBusqueda)
+    );
+  });
 
   // --- Paginación ---
   const totalPaginas = Math.ceil(tiposDeTelasFiltradas.length / elementosPorPagina);
@@ -228,7 +237,7 @@ export function RegistroTiposTela() {
               <div className="flex-1">
                 <input
                   type="text"
-                  placeholder="Buscar por ID, precio, tipo, fecha..."
+                  placeholder="Buscar por ID, nombre y descripción"
                   value={filtro}
                   onChange={(e) => setFiltro(e.target.value)}
                   className="w-full px-4 py-3 bg-[#262729] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"

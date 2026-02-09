@@ -192,9 +192,9 @@ export function ConsultaVen() {
           scannerRef.current
             .stop()
             .then(() => {
-              scannerRef.current.clear().catch((err) => {}); // Ignorar error de clear
+              scannerRef.current.clear().catch(() => {}); // Ignorar error de clear
             })
-            .catch((err) => {}); // Ignorar error de stop
+            .catch(() => {}); // Ignorar error de stop
         } catch (e) {
           console.warn("Error en cleanup:", e);
         }

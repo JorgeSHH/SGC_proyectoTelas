@@ -4,6 +4,7 @@ import { getAllSalesWoman } from "../api/tasks.api";
 import { Navbar } from "../components/Navbar";
 import toast, { Toaster } from "react-hot-toast";
 
+
 export function GestionVen() {
   // 🔴 CONFIGURACIÓN DE URLS
   const URL_API_RETZOS = "http://127.0.0.1:8000/api/inventory/scraps/";
@@ -379,7 +380,7 @@ export function GestionVen() {
                     <p>
                       <span className="text-gray-400">Fecha de Registro:</span>{" "}
                       <span className="text-white">
-                        {salesWomans.created_at}
+                        {new Date(salesWomans.created_at).toLocaleDateString('es-ES')}
                       </span>
                     </p>
                     <p>

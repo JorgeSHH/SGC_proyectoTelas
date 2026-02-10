@@ -13,4 +13,16 @@
 
 - los numero decimales se deben de colocar con puntos no con comas, y maximo dos decimales ej, 1.22 o 32.45
 
+## como activar faker Api
+
+1) paso uno 
+
+python manage.py shell
+
+2) paso dos
+
+from utils.poblar_data import poblar_vendedoras_faker
+resultado = poblar_vendedoras_faker(cantidad=10, admin_id=1)
+print(resultado)
+
 

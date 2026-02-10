@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { Navbar } from "../components/Navbar";
-// Importamos el componente SecureImage
 import { SecureImage } from "../components/SecureImage";
+
 export function GestionRetazo() {
   const [retazos, setRetazos] = useState([]);
   const [filtro, setFiltro] = useState("");
@@ -77,11 +77,9 @@ export function GestionRetazo() {
   }, []);
 
   // --- Filtrado MODIFICADO ---
-  // Ahora filtra explícitamente por fabric_scrap_id, created_by_role y created_by
   const retazosFiltradas = retazos.filter((retazo) => {
     const terminoBusqueda = filtro.toLowerCase();
 
-    // Convertimos a string y a minúsculas para comparar, usando || "" para evitar errores si es null
     const id = String(retazo.fabric_scrap_id || "").toLowerCase();
     const rol = String(retazo.created_by_role || "").toLowerCase();
     const creador = String(retazo.created_by || "").toLowerCase();
@@ -105,7 +103,6 @@ export function GestionRetazo() {
     }
   };
 
-  // --- FUNCIÓN SIMPLIFICADA: Solo envía datos del retazo ---
   const handleRegistrar = async (e) => {
     e.preventDefault();
 
@@ -189,9 +186,16 @@ export function GestionRetazo() {
     }
   };
 
+  // --- CORRECCIÓN AQUÍ: Al editar, forzamos a que active sea booleano ---
+  // --- CORRECCIÓN AQUÍ: Al editar, forzamos a que active sea booleano ---
+  // Usamos Boolean() para convertir 1, "1", true -> true
+  // Y convertir 0, "0", false, null, undefined -> false
   const editarRetazos = (retazos) => {
     setRetazosEditando(retazos);
-    setFormEdit({ ...retazos });
+    setFormEdit({
+      ...retazos,
+      active: Boolean(retazos.active),
+    });
   };
 
   const guardarEdicion = async () => {
@@ -201,7 +205,12 @@ export function GestionRetazo() {
         description: formEdit.description,
         length_meters: formEdit.length_meters,
         width_meters: formEdit.width_meters,
+        // Forzamos a que sea booleano al enviar también
+        active: formEdit.active === true,
       };
+
+      // Console log para debuggear en el navegador (F12 > Console)
+      console.log("Enviando datos al backend:", datosAEnviar);
 
       const response = await fetch(
         `http://127.0.0.1:8000/api/inventory/scraps/${id}/`,
@@ -289,14 +298,27 @@ export function GestionRetazo() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {retazosPaginadas.map((retazos) => {
                 const precio = calcularPrecioRetazo(retazos);
+                const isActive = retazos.active;
+
                 return (
                   <div
                     key={retazos.fabric_scrap_id}
-                    className="bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 hover:border-[#ec4444] transition-all duration-300"
+                    className={`rounded-xl shadow-lg p-6 border transition-all duration-300 relative ${
+                      isActive
+                        ? "bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 border-gray-600 hover:border-[#ec4444]"
+                        : "bg-gray-900 border-gray-800 opacity-60 grayscale hover:opacity-80 hover:grayscale-0"
+                    }`}
                   >
+                    {/* --- CAMBIO: Posición top-2 para subir la etiqueta --- */}
+                    {!isActive && (
+                      <div className="absolute top-2 right-4 bg-black/80 text-white text-xs font-bold px-3 py-1 rounded-full border border-gray-500 z-10">
+                        VENDIDO / INACTIVO
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-white font-bold text-lg">
+                        <h3 className="text-white mt-2 font-bold text-lg">
                           {retazos.fabric_scrap_id}/Retazo de{" "}
                           {retazos.fabric_type?.name ||
                             retazos.fabric_type_id ||
@@ -499,6 +521,28 @@ export function GestionRetazo() {
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   />
+                </div>
+
+                {/* --- CAMBIO: Selector de Estado Activo/Inactivo CORREGIDO --- */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Estado del Retazo
+                  </label>
+                  <select
+                    // Usamos una condición ternaria simple: true -> "true", false -> "false"
+                    value={formEdit.active ? "true" : "false"}
+                    // Usamos la forma funcional de actualización de estado para evitar errores de "stale closure"
+                    onChange={(e) =>
+                      setFormEdit((prev) => ({
+                        ...prev,
+                        active: e.target.value === "true",
+                      }))
+                    }
+                    className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="true">Activo (En Stock)</option>
+                    <option value="false">Vendido / Desactivado</option>
+                  </select>
                 </div>
 
                 <div className="flex gap-3 mt-6">

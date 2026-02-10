@@ -38,7 +38,9 @@ export const Login = () => {
       localStorage.setItem("refresh", refresh);
       localStorage.setItem("user", JSON.stringify(user));
 
-      toast.success(`¡Login exitoso! Hola ${user.username}`);
+      toast.success(`¡Login exitoso! Hola ${user.username}`, {
+        duration: 2000,
+      });
 
       // --- SOLUCIÓN APLICADA AQUÍ ---
       if (user.role === "admin") {
@@ -48,7 +50,9 @@ export const Login = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Credenciales incorrectas. Intenta de nuevo.");
+      toast.error("Credenciales incorrectas. Intenta de nuevo.", {
+        duration: 2000,
+      });
     }
   };
 

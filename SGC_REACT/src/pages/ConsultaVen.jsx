@@ -26,7 +26,9 @@ export function ConsultaVen() {
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
 
-  const userData = JSON.parse(localStorage.getItem("user")) || { username: "ADMIN" };
+  const userData = JSON.parse(localStorage.getItem("user")) || {
+    username: "ADMIN",
+  };
 
   // --- Sincronizar Refs ---
   useEffect(() => {
@@ -34,7 +36,7 @@ export function ConsultaVen() {
     selectedRetazosRef.current = selectedRetazos;
   }, [retazos, selectedRetazos]);
 
-  // --- Fetch de Retazos ---
+  // --- Fetch de Retazos (CORREGIDO) ---
   const fetchRetazos = async () => {
     try {
       if (!token) return;
@@ -50,30 +52,28 @@ export function ConsultaVen() {
       );
       if (response.ok) {
         const data = await response.json();
-        const retazosActivos = data.filter((retazo) => retazo.active !== 0);
+        // CORRECCIÓN AQUÍ:
+        // Usamos simplemente (retazo.active) lo cual descarta false y 0, y acepta true y 1.
+        const retazosActivos = data.filter((retazo) => retazo.active);
         setRetazos(retazosActivos);
       }
-     
 
-    const resDolar = await fetch("http://127.0.0.1:8000/api/utils/dollar/", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (resDolar.ok) {
-      const dataDolar = await resDolar.json();
-      setTasaDolar(dataDolar.rate || 1);
-    }
+      const resDolar = await fetch("http://127.0.0.1:8000/api/utils/dollar/", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (resDolar.ok) {
+        const dataDolar = await resDolar.json();
+        setTasaDolar(dataDolar.rate || 1);
+      }
     } catch (error) {
-    console.error("Error al cargar datos iniciales:", error);
+      console.error("Error al cargar datos iniciales:", error);
     }
   };
-
-  
 
   useEffect(() => {
     fetchRetazos();
   }, []);
-
 
   useEffect(() => {
     return () => {
@@ -104,7 +104,10 @@ export function ConsultaVen() {
   };
 
   const getTotalFactura = () => {
-    return selectedRetazos.reduce((total, r) => total + calcularPrecioRetazo(r), 0);
+    return selectedRetazos.reduce(
+      (total, r) => total + calcularPrecioRetazo(r),
+      0,
+    );
   };
 
   // --- LÓGICA DEL ESCÁNER CORREGIDA ---
@@ -223,14 +226,14 @@ export function ConsultaVen() {
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
 
-    doc.addImage(Logo, 'PNG', (pageWidth/2)-15, y, 30, 30);
+    doc.addImage(Logo, "PNG", pageWidth / 2 - 15, y, 30, 30);
     y += 40;
 
-    // 1. Título 
+    // 1. Título
     doc.setFont("courier", "bold");
     doc.setFontSize(24);
     doc.text("Factura proforma", pageWidth / 2, y, { align: "center" });
-    
+
     y += 8;
     doc.setFontSize(10);
     doc.setFont("courier", "normal");
@@ -243,12 +246,14 @@ export function ConsultaVen() {
     doc.setFont("helvetica", "bold");
     doc.text("Vendedora:", 20, y);
     doc.text("Fecha:", pageWidth - 20, y, { align: "right" });
-    
+
     y += 6;
     doc.setFont("helvetica", "normal");
     // Usamos el username extraído del localStorage
     doc.text(`${userData.username.toUpperCase()}`, 20, y);
-    doc.text(new Date().toLocaleDateString(), pageWidth - 20, y, { align: "right" });
+    doc.text(new Date().toLocaleDateString(), pageWidth - 20, y, {
+      align: "right",
+    });
 
     // 3. Línea Separadora Roja (Estilo de tu captura)
     y += 10;
@@ -260,14 +265,14 @@ export function ConsultaVen() {
     // 4. Listado de Productos
     selectedRetazos.forEach((item) => {
       const precio = calcularPrecioRetazo(item);
-      
+
       doc.setFont("helvetica", "bold");
       doc.text(`${item.fabric_scrap_id}/`, 20, y);
-      
+
       doc.setFont("helvetica", "normal");
       const desc = `${item.fabric_type?.name} - ${item.length_meters}m x ${item.width_meters}m`;
       doc.text(desc, 35, y);
-      
+
       doc.text(`${precio.toFixed(2)}$`, pageWidth - 20, y, { align: "right" });
       y += 8;
     });
@@ -279,16 +284,18 @@ export function ConsultaVen() {
     y += 10;
     doc.setDrawColor(216, 68, 68);
     doc.line(20, y, pageWidth - 20, y);
-    
+
     y += 15;
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
     doc.text("Total:", 20, y);
-    
+
     // Monto en Bolívares destacado
-    const totalBsFormateado = totalBS.toLocaleString('es-VE', { minimumFractionDigits: 2 });
+    const totalBsFormateado = totalBS.toLocaleString("es-VE", {
+      minimumFractionDigits: 2,
+    });
     doc.text(`${totalBsFormateado} bs`, pageWidth - 45, y, { align: "right" });
-    
+
     // Monto en Dólares al final
     doc.text(`${totalUSD.toFixed(0)}$`, pageWidth - 20, y, { align: "right" });
 
@@ -297,9 +304,19 @@ export function ConsultaVen() {
     doc.setFontSize(9);
     doc.setFont("courier", "normal");
     doc.setTextColor(150);
-    doc.text(`tasa de cambio: ${tasaDolar.toFixed(4)} >> 1$`, pageWidth / 2, y, { align: "center" });
+    doc.text(
+      `tasa de cambio: ${tasaDolar.toFixed(4)} >> 1$`,
+      pageWidth / 2,
+      y,
+      { align: "center" },
+    );
     y += 5;
-    doc.text("No se debe botar, guardar para el administrador", pageWidth / 2, y, { align: "center" });
+    doc.text(
+      "No se debe botar, guardar para el administrador",
+      pageWidth / 2,
+      y,
+      { align: "center" },
+    );
 
     const pdfBlob = doc.output("bloburl");
     setPdfUrl(pdfBlob);
@@ -334,7 +351,7 @@ export function ConsultaVen() {
         setSelectedRetazos([]);
         setMostrarFactura(false);
         setPaginaActual(1);
-        await fetchRetazos();
+        await fetchRetazos(); // Esto recargará y filtrará correctamente ahora
       } else {
         console.error("Error en la respuesta del servidor");
         toast.error("Hubo un error al confirmar la venta.");
@@ -432,7 +449,6 @@ export function ConsultaVen() {
               <button
                 onClick={() => setMostrarScanner(true)}
                 className="bg-white hover:bg-gray-200 text-[#ec4444] px-4 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
-
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

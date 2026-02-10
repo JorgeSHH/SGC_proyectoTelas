@@ -29,8 +29,8 @@ class MyConfig(AppConfig):
         scheduler.add_job(
             execute_rate_update, 
             trigger='cron', 
-            hour='17', 
-            minute='0',
+            hour='20', 
+            minute='25',
             id='tasa_5pm', # ID único
             name='Actualización Tarde 1',
             jobstore="default",

@@ -268,7 +268,7 @@ export function RegistroTiposTela() {
                     <p>
                       <span className="text-gray-400">Fecha de registro:</span>{" "}
                       <span className="text-white">
-                        {tiposDeTela.registered_at}
+                        {new Date(tiposDeTela.registered_at).toLocaleDateString()}
                       </span>
                     </p>
                     
@@ -284,14 +284,17 @@ export function RegistroTiposTela() {
                     </p>
 
                     <p>
-                      <span className="-1/2 overflow-hidden text-ellipsis text-gray-400">
-                        Descripcion:
-                      </span>{" "}
+                      <span className="text-gray-400">
+                        Descripción:
+                      </span>
                       <br />
-                      <span  maxLength="250" className="text-white block mt-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                      <span
+                        className="text-white block mt-1 overflow-y-auto break-words max-h-24"
+                      >
                         {tiposDeTela.description}
                       </span>
                     </p>
+
 
                     <div className="mt-2 px-4 py-4 bg-gray-800/50 rounded-lg flex justify-center">
                       <SecureImage 
@@ -530,7 +533,7 @@ export function RegistroTiposTela() {
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Precio por Unidad (Metro)</label>
                   <input
-                    type="number"
+                    placeholder="REF dolar: 10.50"
                     step="0.01"
                     value={formRegistro.price_unit}
                     onChange={(e) => setFormRegistro({ ...formRegistro, price_unit: e.target.value })}

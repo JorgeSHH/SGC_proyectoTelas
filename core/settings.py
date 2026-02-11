@@ -81,7 +81,7 @@ SPECTACULAR_SETTINGS = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # El token dura 1 hora
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=200), # El token dura 1 hora
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # El refresh dura 1 día para ese dia de trabajo mejor asi
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,

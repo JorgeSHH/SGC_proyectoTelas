@@ -72,16 +72,16 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
             self.perform_destroy(instance)
             return Response({
                 "status": "success",
-                "message": f"La vendedora con email {email_borrado} ha sido desactivada del sistema.",
+                "message": f"La vendedora con email {email_borrado} ha sido eliminada del sistema y los retasos fueron reasignados.",
             }, status=status.HTTP_200_OK)
             
-            # AGREGA ESTE BLOQUE EXCEPT
+
         except IntegrityError:
             return Response({
                 "status": "error",
                 "message": "No se puede eliminar la vendedora porque tiene retazos asociados.",
-                "code": "HAS_RELATED_SCRAPS" # Un código para que el frontend identifique el error
-            }, status=status.HTTP_409_CONFLICT) # 409 Conflict es el código estándar para esto
+                "code": "HAS_RELATED_SCRAPS"
+            }, status=status.HTTP_409_CONFLICT) 
             
         except serializers.ValidationError as e:
             return Response({
@@ -105,27 +105,45 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
     def perform_destroy(self, instance):
         """ este metodo asegura que se elimine en user lo que se eliminane en Saleswoman"""
         old_data = model_to_dict(instance)
+        email_vendedora = instance.email
 
         try:
-            admin_profile = Administrator.objects.get(email=self.request.user.email)
+            admin_user = self.request.user
+            admin_profile = Administrator.objects.get(email=admin_user.email)
         except Administrator.DoesNotExist:
             raise serializers.ValidationError({"detail": "El usuario logueado no tiene un perfil de administrador válido."})
 
         User = get_user_model()
-        with transaction.atomic():
-            User.objects.filter(email = instance.email).update(is_active=False)
-            instance.status = False
-            instance.save()
 
-        instance.refresh_from_db()
+        from inventory.models import Fabric_Scrap
+
+        with transaction.atomic():
+            try:
+                user_vendedora = User.objects.get(email=email_vendedora)
+                
+                retazos_asociados = Fabric_Scrap.objects.filter(created_by_id=user_vendedora)
+                
+                if retazos_asociados.exists():
+                    retazos_asociados.update(
+                        created_by_id=admin_user,
+                        created_by_role='admin'
+                    )
+            except User.DoesNotExist:
+                pass
+
+
 
         self.log_action(
             admin=admin_profile,
-            action_type='DEACTIVATE',
+            action_type='DELETE',
             instance= instance,
             old_data= old_data
                         
         )
+
+        User.objects.filter(email=email_vendedora).delete()
+        if instance.pk:
+                instance.delete()
         
             
 

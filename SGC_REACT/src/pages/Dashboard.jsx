@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 import Chart from "chart.js/auto";
-// ✅ IMPORTAR DESDE TU ARCHIVO EXISTENTE
 import { getDashboardMetrics } from "../api/tasks.api";
 
 export function Dashboard() {
@@ -9,7 +8,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Referencias (Sin cambios)
+  // Referencias
   const vendedorCanvasRef = React.useRef(null);
   const tipoTelaCanvasRef = React.useRef(null);
   const progresoCanvasRef = React.useRef(null);
@@ -21,7 +20,6 @@ export function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // ✅ LLAMADA LIMPIA USANDO TU SERVICIO
         const data = await getDashboardMetrics();
         setDashboardData(data);
         setError(null);
@@ -35,24 +33,21 @@ export function Dashboard() {
 
     fetchDashboardData();
   }, []);
-
-  // --- (El resto del código para las gráficas se mantiene idéntico) ---
   
   useEffect(() => {
     if (!loading && dashboardData) {
-      // ... (Toda la lógica de las gráficas vendedorLabels, telaLabels, etc. sigue igual) ...
       
-      // --- 1. DATOS PARA GRÁFICA BARRAS: VENDEDORAS ---
+      //1. DATOS PARA GRÁFICA BARRAS: VENDEDORAS 
       const vendedorData = dashboardData.data2?.ranking_global || [];
       const vendedorLabels = vendedorData.map((item) => item.created_by__username);
       const vendedorValues = vendedorData.map((item) => Number(item.total) || 0);
 
-      // --- 2. DATOS PARA GRÁFICA BARRAS: TIPOS DE TELA ---
+      // 2. DATOS PARA GRÁFICA BARRAS: TIPOS DE TELA
       const telaData = dashboardData.data1?.scraps_by_type || [];
       const telaLabels = telaData.map((item) => item.fabric_type__name);
       const telaValues = telaData.map((item) => Number(item.total) || 0);
 
-      // --- 3. DATOS PARA GRÁFICA LÍNEA: PROGRESO SEMANAL ---
+      //3. DATOS PARA GRÁFICA LÍNEA: PROGRESO SEMANAL
       const progresoData = dashboardData.data2?.progreso_semanal || [];
       const progresoGrouped = progresoData.reduce((acc, curr) => {
         const dateKey = curr.semana ? curr.semana.split("T")[0] : "Desconocido";
@@ -140,7 +135,7 @@ export function Dashboard() {
               <div className="text-center text-red-500 py-20 text-xl">{error}</div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                 {/* Gráficas aquí... */}
+                 {/* Graficas */}
                 <div className="bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 flex flex-col items-center h-[400px]">
                   <h3 className="text-xl font-bold text-white mb-6 border-b border-gray-600 pb-2 w-full text-center">Ranking por Vendedora</h3>
                   <div className="w-full h-full relative"><canvas ref={vendedorCanvasRef}></canvas></div>

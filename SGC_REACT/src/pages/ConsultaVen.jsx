@@ -113,7 +113,7 @@ export function ConsultaVen() {
   // --- LÓGICA DEL ESCÁNER CORREGIDA ---
 
   const onScanFailure = useCallback((error) => {
-    // Ignorar errores de no encontrar QR
+
   }, []);
 
   const handleScanSuccess = useCallback((decodedText) => {
@@ -351,7 +351,7 @@ export function ConsultaVen() {
         setSelectedRetazos([]);
         setMostrarFactura(false);
         setPaginaActual(1);
-        await fetchRetazos(); // Esto recargará y filtrará correctamente ahora
+        await fetchRetazos(); 
       } else {
         console.error("Error en la respuesta del servidor");
         toast.error("Hubo un error al confirmar la venta.");

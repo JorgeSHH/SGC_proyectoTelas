@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-// CORRECCIÓN: Importamos autoTable explícitamente
 import { autoTable } from 'jspdf-autotable';
 
 export function ButtonExp() {

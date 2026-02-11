@@ -14,7 +14,7 @@ import { RegistroTiposTela } from "./pages/RegistroTiposTela";
 import { GestionRetazo } from "./pages/GestionRetazo";
 import { Dashboard } from "./pages/Dashboard";
 
-// --- 1. RUTA PROTEGIDA (Para páginas internas) ---
+// --- RUTA PROTEGIDAs ---
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const userStr = localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
@@ -47,7 +47,7 @@ const PublicRoute = ({ children }) => {
     }
   }
 
-  // Si no hay usuario, muestra el componente (Login)
+  // Si no hay usuario, muestra el login
   return children;
 };
 
@@ -109,7 +109,7 @@ function App() {
           }
         />
 
-        {/* --- RUTAS DE VENDEDORES (SALESWOMAN) --- */}
+        {/* --- RUTAS DE VENDEDORES--- */}
         <Route
           path="/ven-menu"
           element={

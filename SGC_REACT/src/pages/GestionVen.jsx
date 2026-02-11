@@ -10,7 +10,6 @@ export function GestionVen() {
   const URL_API_RETZOS = "http://127.0.0.1:8000/api/inventory/scraps/";
   const URL_API_ADMIN = "http://127.0.0.1:8000/api/users/administrators/";
 
-  // Campo en la base de datos que queremos actualizar
   const NOMBRE_CAMPO_FILTRO = "created_by_id";
 
   const [filtro, setFiltro] = useState("");
@@ -19,7 +18,7 @@ export function GestionVen() {
 
   const token = localStorage.getItem("access");
 
-  // 🔬 AUTOPSIA DEL TOKEN: Revisamos todo el contenido del token
+  // 🔬 AUTOPSIA DEL TOKEN
   const getAdminUserId = async () => {
     try {
       const token = localStorage.getItem("access");
@@ -38,53 +37,25 @@ export function GestionVen() {
 
         const payload = JSON.parse(jsonPayload);
 
-        console.log("🧪 AUTOPSIA DEL TOKEN:");
-        console.log("   Total de campos:", Object.keys(payload).length);
-
-        // Iteramos e imprimimos TODOS los campos uno por uno
-        Object.keys(payload).forEach((key) => {
-          console.log(`   -> Campo: "${key}"`, `Valor:`, payload[key]);
-        });
-
-        // Buscamos el ID en cualquier campo que tenga 'id', 'sub' o 'user'
-        const potentialIdKeys = Object.keys(payload).filter(
-          (k) =>
-            k.toLowerCase().includes("id") ||
-            k.toLowerCase().includes("sub") ||
-            k === "pk",
-        );
-
-        console.log("🧪 Campos candidatos a ID:", potentialIdKeys);
-
-        // Intentos de asignación por prioridad
         if (payload.user_id) return payload.user_id;
         if (payload.sub) return payload.sub;
         if (payload.pk) return payload.pk;
         if (payload.id) return payload.id;
 
-        // Si no encontramos las palabras clave, pero solo hay 1 campo numérico extra...
         const numericValues = Object.values(payload).filter(
           (v) =>
             typeof v === "number" &&
             v > 0 &&
             v < 999999 &&
             !v.toString().startsWith("17"),
-        ); // Filtra exp/iat timestamps
+        );
         if (numericValues.length === 1) {
-          console.log(
-            "🧪 Adivinanza: Solo hay un número sospechoso:",
-            numericValues[0],
-          );
           return numericValues[0];
         }
       }
     } catch (e) {
       console.error("🧪 Error en autopsia:", e);
     }
-
-    console.error(
-      "❌ El Token no contiene ID identificable y la API Admin tampoco lo expone.",
-    );
     return null;
   };
 
@@ -157,54 +128,94 @@ export function GestionVen() {
     }
   };
 
-  // --- ELIMINAR ---
-  const handleEliminar = async (saleswoman_id) => {
-    if (
-      window.confirm(
-        "¿Estás seguro de que deseas eliminar a esta vendedora? Esta acción no se puede deshacer.",
-      )
-    ) {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/users/saleswoman/${saleswoman_id}/`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+  // --- ELIMINAR (Toast de confirmación + Lógica API) ---
 
-        if (response.ok) {
-          toast.success("Vendedora eliminada exitosamente");
-          setSalesWoman(
-            salesWoman.filter((v) => v.saleswoman_id !== saleswoman_id),
-          );
-        } else {
-          const errorData = await response.json();
-          if (
-            response.status === 409 &&
-            errorData.code === "HAS_RELATED_SCRAPS"
-          ) {
-            setVendedoraIdConflicto(saleswoman_id);
-            setMostrarModalConflicto(true);
-          } else {
-            toast.error(
-              "Error al eliminar: " +
-                (errorData.detail ||
-                  errorData.message ||
-                  "No se pudo completar la acción"),
-            );
-          }
-        }
-      } catch (error) {
-        console.error("Error en la petición:", error);
-        toast.error("Error de conexión al intentar eliminar.");
+  // 1. Función para mostrar el Toast de confirmación personalizado
+  const confirmarEliminacion = (saleswoman_id) => {
+    toast((t) => (
+      <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl text-red-500">🗑️</span>
+          <div className="text-left">
+            <h3 className="font-bold text-sm">¿Eliminar vendedora?</h3>
+            <p className="text-xs text-gray-400">Pasará a estado inactivo</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-2 w-full justify-end mt-1">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs transition-colors font-medium"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id); // Cierra el toast
+              procesarEliminacion(saleswoman_id); // Ejecuta la lógica
+            }}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors font-bold shadow-md"
+          >
+            Sí, Eliminar
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity, // El toast no desaparece solo
+      style: {
+        background: 'transparent', // Importante para que se vea el fondo customizado
+        boxShadow: 'none',
+        padding: 0
       }
+    });
+  };
+
+  // 2. Función que ejecuta el DELETE real y actualiza el estado
+  const procesarEliminacion = async (saleswoman_id) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/users/saleswoman/${saleswoman_id}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        toast.success("Vendedora eliminada (Inactiva)");
+        
+        // Actualización local (Soft Delete visual)
+        setSalesWoman(
+          salesWoman.map((v) =>
+            v.saleswoman_id === saleswoman_id
+              ? { ...v, status: false }
+              : v
+          )
+        );
+      } else {
+        const errorData = await response.json();
+        if (
+          response.status === 409 &&
+          errorData.code === "HAS_RELATED_SCRAPS"
+        ) {
+          setVendedoraIdConflicto(saleswoman_id);
+          setMostrarModalConflicto(true);
+        } else {
+          toast.error(
+            "Error al eliminar: " +
+              (errorData.detail || errorData.message || "Error desconocido"),
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error en la petición:", error);
+      toast.error("Error de conexión.");
     }
   };
 
-  //edicion de vendedoras
+  // --- EDICIÓN ---
   const [vendedoraEditando, setVendedoraEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({});
 
@@ -296,6 +307,11 @@ export function GestionVen() {
     console.log("Exportando a PDF...");
   };
 
+  const handleConfirmarReasignacion = async () => {
+     toast.success("Función de reasignación pendiente de implementar según tu lógica backend");
+     setMostrarModalConflicto(false);
+  };
+
   return (
     <>
       <Navbar />
@@ -349,7 +365,11 @@ export function GestionVen() {
               {VendedorasPaginado.map((salesWomans) => (
                 <div
                   key={salesWomans.saleswoman_id}
-                  className="bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 rounded-xl shadow-lg p-6 border border-gray-600 hover:border-[#ec4444] transition-all duration-300"
+                  className={`rounded-xl shadow-lg p-6 border transition-all duration-300 relative ${
+                    salesWomans.status
+                      ? "bg-gradient-to-br from-[#3a3b3c]/90 to-[#2a2b2c]/90 border-gray-600 hover:border-[#ec4444]"
+                      : "bg-[#1a1a1a]/80 border-red-900/50 hover:border-red-500 opacity-70 hover:opacity-100 grayscale-[0.5]"
+                  }`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -360,6 +380,11 @@ export function GestionVen() {
                         {salesWomans.email}
                       </p>
                     </div>
+                    {salesWomans.status === false && (
+                        <span className="bg-red-900/60 text-red-200 text-xs font-bold px-2 py-1 rounded border border-red-800">
+                          INACTIVA
+                        </span>
+                    )}
                   </div>
 
                   <div className="space-y-2 text-sm">
@@ -399,7 +424,8 @@ export function GestionVen() {
                       Editar
                     </button>
                     <button
-                      onClick={() => handleEliminar(salesWomans.saleswoman_id)}
+                      // CAMBIO: Ahora llamamos a la función que muestra el Toast
+                      onClick={() => confirmarEliminacion(salesWomans.saleswoman_id)}
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded text-sm transition-colors"
                     >
                       Eliminar

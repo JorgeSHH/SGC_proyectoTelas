@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ButtonExpTPT } from "../components/ButtonExpTPT";
 import { Navbar } from "../components/Navbar";
 import { SecureImage } from "../components/SecureImage";
+import toast, { Toaster } from "react-hot-toast";
 
 export function GestionRetazo() {
   const [retazos, setRetazos] = useState([]);
@@ -155,34 +156,72 @@ export function GestionRetazo() {
       console.error("Error en el registro:", error);
     }
   };
-
-  const eliminarRetazos = async (fabric_scrap_id) => {
-    if (window.confirm("¿Estás seguro de eliminar este retazo?")) {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/inventory/scraps/${fabric_scrap_id}/`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (response.ok) {
-          alert("Retazo eliminado exitosamente");
-          fetchRetazos();
-        } else {
-          const errorData = await response.json();
-          alert(
-            errorData.detail ||
-              "No se puede eliminar: Esta tela tiene retazos asociados.",
-          );
-        }
-      } catch (error) {
-        console.error("Error al eliminar:", error);
-        alert("Hubo un error de conexión al intentar eliminar.");
+  // 1. Función principal que llama al Toast de confirmación
+  const eliminarRetazos = (fabric_scrap_id) => {
+    toast((t) => (
+      <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl text-red-500">🗑️</span>
+          <div className="text-left">
+            <h3 className="font-bold text-sm">¿Eliminar retazo?</h3>
+            <p className="text-xs text-gray-400">Esta acción no se puede deshacer</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-2 w-full justify-end mt-1">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs transition-colors font-medium"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id); // Cierra la alerta
+              procesarEliminacionRetazo(fabric_scrap_id); // Ejecuta la lógica de borrado
+            }}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors font-bold shadow-md"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity, // Mantiene el toast abierto hasta que el usuario decida
+      style: {
+        background: 'transparent', 
+        boxShadow: 'none',
+        padding: 0
       }
+    });
+  };
+
+  // 2. Función secundaria que hace la petición DELETE real
+  const procesarEliminacionRetazo = async (fabric_scrap_id) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/inventory/scraps/${fabric_scrap_id}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        toast.success("Retazo eliminado exitosamente");
+        fetchRetazos(); // Recarga la tabla de retazos
+      } else {
+        const errorData = await response.json();
+        toast.error(
+          errorData.detail ||
+            "No se puede eliminar: Este retazo tiene asociaciones.",
+        );
+      }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      toast.error("Hubo un error de conexión al intentar eliminar.");
     }
   };
 
@@ -642,24 +681,39 @@ export function GestionRetazo() {
                 </div>
 
                 {/* Campo: Descripción */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Descripción
-                  </label>
-                  <textarea
-                    value={formRegistro.description}
-                    onChange={(e) =>
-                      setFormRegistro({
-                        ...formRegistro,
-                        description: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                    rows="3"
-                    placeholder="Detalles del retazo..."
-                    required
-                  />
-                </div>
+  <div>
+  <label className="block text-sm font-medium text-gray-300 mb-2">
+    Descripción
+  </label>
+  
+  <textarea
+    value={formRegistro.description}
+    onChange={(e) =>
+      setFormRegistro({
+        ...formRegistro,
+        description: e.target.value,
+      })
+    }
+    maxLength="250" // <--- Limita el texto a 250 caracteres
+    className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none" // <--- resize-none evita que se agrande y rompa el diseño
+    rows="3"
+    placeholder="Detalles del retazo..."
+    required
+  />
+  
+  {/* Contador de caracteres */}
+  <div className="text-right mt-1">
+    <span 
+      className={`text-xs ${
+        formRegistro.description.length >= 250 
+          ? 'text-red-500 font-bold' // Se pone rojo si llega al límite
+          : 'text-gray-500'
+      }`}
+    >
+      {formRegistro.description.length}/250
+    </span>
+  </div>
+</div>
 
                 <div className="flex gap-3 mt-6">
                   <button

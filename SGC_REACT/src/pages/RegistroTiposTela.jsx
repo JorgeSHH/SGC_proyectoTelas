@@ -288,7 +288,7 @@ export function RegistroTiposTela() {
                         Descripcion:
                       </span>{" "}
                       <br />
-                      <span className="text-white">
+                      <span  maxLength="250" className="text-white block mt-1 overflow-hidden text-ellipsis whitespace-nowrap">
                         {tiposDeTela.description}
                       </span>
                     </p>

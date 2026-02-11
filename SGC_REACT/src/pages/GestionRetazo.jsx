@@ -92,7 +92,6 @@ export function GestionRetazo() {
     );
   });
 
-
   const totalPaginas = Math.ceil(retazosFiltradas.length / elementosPorPagina);
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const indiceFin = indiceInicio + elementosPorPagina;
@@ -129,7 +128,7 @@ export function GestionRetazo() {
       );
 
       if (response.ok) {
-        alert("Retazo registrado con éxito");
+        toast.success("Retazo registrado con éxito");
         setMostrarModalRegistro(false);
         setFormRegistro({
           length_meters: "",
@@ -150,7 +149,7 @@ export function GestionRetazo() {
           errorMsg += ` Tipo: ${errorData.fabric_type}`;
         if (errorData.non_field_errors)
           errorMsg += ` ${errorData.non_field_errors.join(", ")}`;
-        alert(errorMsg);
+        console.error(errorMsg);
       }
     } catch (error) {
       console.error("Error en el registro:", error);
@@ -158,42 +157,46 @@ export function GestionRetazo() {
   };
   // 1. Función principal que llama al Toast de confirmación
   const eliminarRetazos = (fabric_scrap_id) => {
-    toast((t) => (
-      <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl text-red-500">🗑️</span>
-          <div className="text-left">
-            <h3 className="font-bold text-sm">¿Eliminar retazo?</h3>
-            <p className="text-xs text-gray-400">Esta acción no se puede deshacer</p>
+    toast(
+      (t) => (
+        <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
+          <div className="flex items-center gap-3">
+            <div className="text-left">
+              <h3 className="font-bold text-sm">¿Eliminar retazo?</h3>
+              <p className="text-xs text-gray-400">
+                Esta acción no se puede deshacer
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 w-full justify-end mt-1">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs transition-colors font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id); // Cierra la alerta
+                procesarEliminacionRetazo(fabric_scrap_id); // Ejecuta la lógica de borrado
+              }}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors font-bold shadow-md"
+            >
+              Eliminar
+            </button>
           </div>
         </div>
-        
-        <div className="flex gap-2 w-full justify-end mt-1">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs transition-colors font-medium"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={() => {
-              toast.dismiss(t.id); // Cierra la alerta
-              procesarEliminacionRetazo(fabric_scrap_id); // Ejecuta la lógica de borrado
-            }}
-            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors font-bold shadow-md"
-          >
-            Eliminar
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: Infinity, // Mantiene el toast abierto hasta que el usuario decida
-      style: {
-        background: 'transparent', 
-        boxShadow: 'none',
-        padding: 0
-      }
-    });
+      ),
+      {
+        duration: Infinity, // Mantiene el toast abierto hasta que el usuario decida
+        style: {
+          background: "transparent",
+          boxShadow: "none",
+          padding: 0,
+        },
+      },
+    );
   };
 
   // 2. Función secundaria que hace la petición DELETE real
@@ -225,7 +228,6 @@ export function GestionRetazo() {
     }
   };
 
-  
   const editarRetazos = (retazos) => {
     setRetazosEditando(retazos);
     setFormEdit({
@@ -259,17 +261,17 @@ export function GestionRetazo() {
       );
 
       if (response.ok) {
-        alert("Retazos actualizados correctamente (PATCH)");
+        toast.success("Retazos actualizados correctamente (PATCH)");
         setRetazosEditando(null);
         fetchRetazos();
       } else {
         const errorData = await response.json();
         console.log("Error del backend:", errorData);
-        alert("Error al actualizar: " + JSON.stringify(errorData));
+        toast.error("Error al actualizar:");
       }
     } catch (error) {
       console.error("Error en la conexión:", error);
-      alert("No se pudo conectar con el servidor.");
+      toast.error("No se pudo conectar con el servidor.");
     }
   };
 
@@ -362,14 +364,14 @@ export function GestionRetazo() {
                     </div>
 
                     <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="text-gray-400">
-                        Fecha de registro:
-                      </span>{" "}
-                      <span className="text-white">
-                        {new Date(retazos.registered_at).toLocaleDateString()}
-                      </span>
-                    </p>
+                      <p>
+                        <span className="text-gray-400">
+                          Fecha de registro:
+                        </span>{" "}
+                        <span className="text-white">
+                          {new Date(retazos.registered_at).toLocaleDateString()}
+                        </span>
+                      </p>
 
                       <div className="flex justify-between ">
                         <span>
@@ -412,10 +414,13 @@ export function GestionRetazo() {
                         <span className="text-gray-400">Descripción:</span>{" "}
                         <br />
                         {/* line-clamp-3 corta el texto a 3 líneas. break-words rompe palabras largas si es necesario */}
-                        <span className="text-white block break-words line-clamp-3" title={retazos.description}>
+                        <span
+                          className="text-white block break-words line-clamp-3"
+                          title={retazos.description}
+                        >
                           {retazos.description}
                         </span>
-                    </p>
+                      </p>
 
                       <div className="mt-2 px-4 py-4 rounded-lg flex justify-center">
                         <SecureImage
@@ -682,39 +687,39 @@ export function GestionRetazo() {
                 </div>
 
                 {/* Campo: Descripción */}
-  <div>
-  <label className="block text-sm font-medium text-gray-300 mb-2">
-    Descripción
-  </label>
-  
-  <textarea
-    value={formRegistro.description}
-    onChange={(e) =>
-      setFormRegistro({
-        ...formRegistro,
-        description: e.target.value,
-      })
-    }
-    maxLength="250" // <--- Limita el texto a 250 caracteres
-    className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none  block mt-1 overflow-y-auto break-words max-h-24" // <--- resize-none evita que se agrande y rompa el diseño
-    rows="3"
-    placeholder="Detalles del retazo..."
-    required
-  />
-  
-  {/* Contador de caracteres */}
-  <div className="text-right mt-1">
-    <span 
-      className={`text-xs ${
-        formRegistro.description.length >= 250 
-          ? 'text-red-500 font-bold' // Se pone rojo si llega al límite
-          : 'text-gray-500'
-      }`}
-    >
-      {formRegistro.description.length}/250
-    </span>
-  </div>
-</div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Descripción
+                  </label>
+
+                  <textarea
+                    value={formRegistro.description}
+                    onChange={(e) =>
+                      setFormRegistro({
+                        ...formRegistro,
+                        description: e.target.value,
+                      })
+                    }
+                    maxLength="250" // <--- Limita el texto a 250 caracteres
+                    className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none  block mt-1 overflow-y-auto break-words max-h-24" // <--- resize-none evita que se agrande y rompa el diseño
+                    rows="3"
+                    placeholder="Detalles del retazo..."
+                    required
+                  />
+
+                  {/* Contador de caracteres */}
+                  <div className="text-right mt-1">
+                    <span
+                      className={`text-xs ${
+                        formRegistro.description.length >= 250
+                          ? "text-red-500 font-bold" // Se pone rojo si llega al límite
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {formRegistro.description.length}/250
+                    </span>
+                  </div>
+                </div>
 
                 <div className="flex gap-3 mt-6">
                   <button

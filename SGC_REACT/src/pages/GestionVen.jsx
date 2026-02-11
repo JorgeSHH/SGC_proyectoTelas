@@ -4,7 +4,6 @@ import { getAllSalesWoman } from "../api/tasks.api";
 import { Navbar } from "../components/Navbar";
 import toast, { Toaster } from "react-hot-toast";
 
-
 export function GestionVen() {
   // 🔴 CONFIGURACIÓN DE URLS
   const URL_API_RETZOS = "http://127.0.0.1:8000/api/inventory/scraps/";
@@ -120,54 +119,55 @@ export function GestionVen() {
         });
         cargarVendedoras();
       } else {
-        const error = await response.json();
-        toast.error("Error al registrar vendedora " + JSON.stringify(error));
+        toast.error("Error al registrar vendedora");
       }
     } catch (error) {
       console.error("Error:", error);
     }
   };
-
   // --- ELIMINAR (Toast de confirmación + Lógica API) ---
 
   // 1. Función para mostrar el Toast de confirmación personalizado
   const confirmarEliminacion = (saleswoman_id) => {
-    toast((t) => (
-      <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl text-red-500">🗑️</span>
-          <div className="text-left">
-            <h3 className="font-bold text-sm">¿Eliminar vendedora?</h3>
-            <p className="text-xs text-gray-400">Pasará a estado inactivo</p>
+    toast(
+      (t) => (
+        <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl text-red-500">🗑️</span>
+            <div className="text-left">
+              <h3 className="font-bold text-sm">¿Eliminar vendedora?</h3>
+              <p className="text-xs text-gray-400">Pasará a estado inactivo</p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 w-full justify-end mt-1">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs transition-colors font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id); // Cierra el toast
+                procesarEliminacion(saleswoman_id); // Ejecuta la lógica
+              }}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors font-bold shadow-md"
+            >
+              Sí, Eliminar
+            </button>
           </div>
         </div>
-        
-        <div className="flex gap-2 w-full justify-end mt-1">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs transition-colors font-medium"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={() => {
-              toast.dismiss(t.id); // Cierra el toast
-              procesarEliminacion(saleswoman_id); // Ejecuta la lógica
-            }}
-            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors font-bold shadow-md"
-          >
-            Sí, Eliminar
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: Infinity, // El toast no desaparece solo
-      style: {
-        background: 'transparent', // Importante para que se vea el fondo customizado
-        boxShadow: 'none',
-        padding: 0
-      }
-    });
+      ),
+      {
+        duration: Infinity, // El toast no desaparece solo
+        style: {
+          background: "transparent", // Importante para que se vea el fondo customizado
+          boxShadow: "none",
+          padding: 0,
+        },
+      },
+    );
   };
 
   // 2. Función que ejecuta el DELETE real y actualiza el estado
@@ -185,14 +185,12 @@ export function GestionVen() {
 
       if (response.ok) {
         toast.success("Vendedora eliminada (Inactiva)");
-        
+
         // Actualización local (Soft Delete visual)
         setSalesWoman(
           salesWoman.map((v) =>
-            v.saleswoman_id === saleswoman_id
-              ? { ...v, status: false }
-              : v
-          )
+            v.saleswoman_id === saleswoman_id ? { ...v, status: false } : v,
+          ),
         );
       } else {
         const errorData = await response.json();
@@ -203,10 +201,7 @@ export function GestionVen() {
           setVendedoraIdConflicto(saleswoman_id);
           setMostrarModalConflicto(true);
         } else {
-          toast.error(
-            "Error al eliminar: " +
-              (errorData.detail || errorData.message || "Error desconocido"),
-          );
+          toast.error("Error al eliminar: ");
         }
       }
     } catch (error) {
@@ -267,8 +262,7 @@ export function GestionVen() {
           ),
         );
       } else {
-        const errorData = await response.json();
-        toast.error("Error al actualizar: " + JSON.stringify(errorData));
+        toast.error("Error al actualizar: ");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -308,8 +302,10 @@ export function GestionVen() {
   };
 
   const handleConfirmarReasignacion = async () => {
-     toast.success("Función de reasignación pendiente de implementar según tu lógica backend");
-     setMostrarModalConflicto(false);
+    toast.success(
+      "Función de reasignación pendiente de implementar según tu lógica backend",
+    );
+    setMostrarModalConflicto(false);
   };
 
   return (
@@ -381,9 +377,9 @@ export function GestionVen() {
                       </p>
                     </div>
                     {salesWomans.status === false && (
-                        <span className="bg-red-900/60 text-red-200 text-xs font-bold px-2 py-1 rounded border border-red-800">
-                          INACTIVA
-                        </span>
+                      <span className="bg-red-900/60 text-red-200 text-xs font-bold px-2 py-1 rounded border border-red-800">
+                        INACTIVA
+                      </span>
                     )}
                   </div>
 
@@ -405,7 +401,9 @@ export function GestionVen() {
                     <p>
                       <span className="text-gray-400">Fecha de Registro:</span>{" "}
                       <span className="text-white">
-                        {new Date(salesWomans.created_at).toLocaleDateString('es-ES')}
+                        {new Date(salesWomans.created_at).toLocaleDateString(
+                          "es-ES",
+                        )}
                       </span>
                     </p>
                     <p>
@@ -424,8 +422,9 @@ export function GestionVen() {
                       Editar
                     </button>
                     <button
-                      // CAMBIO: Ahora llamamos a la función que muestra el Toast
-                      onClick={() => confirmarEliminacion(salesWomans.saleswoman_id)}
+                      onClick={() =>
+                        confirmarEliminacion(salesWomans.saleswoman_id)
+                      }
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded text-sm transition-colors"
                     >
                       Eliminar
@@ -504,12 +503,13 @@ export function GestionVen() {
                     required
                     className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white"
                     value={formRegistro.first_name}
-                    onChange={(e) =>
-                      setFormRegistro({
-                        ...formRegistro,
-                        first_name: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Solo letras (incluyendo acentos y espacios)
+                      if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(val)) {
+                        setFormRegistro({ ...formRegistro, first_name: val });
+                      }
+                    }}
                   />
                 </div>
                 <div>
@@ -521,12 +521,13 @@ export function GestionVen() {
                     required
                     className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white"
                     value={formRegistro.last_name}
-                    onChange={(e) =>
-                      setFormRegistro({
-                        ...formRegistro,
-                        last_name: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Solo letras (incluyendo acentos y espacios)
+                      if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(val)) {
+                        setFormRegistro({ ...formRegistro, last_name: val });
+                      }
+                    }}
                   />
                 </div>
                 <div>
@@ -588,12 +589,13 @@ export function GestionVen() {
                     type="text"
                     className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white"
                     value={formRegistro.phone}
-                    onChange={(e) =>
-                      setFormRegistro({
-                        ...formRegistro,
-                        phone: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Solo números
+                      if (/^\d*$/.test(val)) {
+                        setFormRegistro({ ...formRegistro, phone: val });
+                      }
+                    }}
                   />
                 </div>
 
@@ -638,9 +640,13 @@ export function GestionVen() {
                     required
                     className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white"
                     value={formEdit.first_name}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, first_name: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Solo letras (incluyendo acentos y espacios)
+                      if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(val)) {
+                        setFormEdit({ ...formEdit, first_name: val });
+                      }
+                    }}
                   />
                 </div>
                 <div>
@@ -652,9 +658,13 @@ export function GestionVen() {
                     required
                     className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white"
                     value={formEdit.last_name}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, last_name: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Solo letras (incluyendo acentos y espacios)
+                      if (/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/.test(val)) {
+                        setFormEdit({ ...formEdit, last_name: val });
+                      }
+                    }}
                   />
                 </div>
                 <div>
@@ -693,25 +703,16 @@ export function GestionVen() {
                     type="text"
                     className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white"
                     value={formEdit.phone}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, phone: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Solo números
+                      if (/^\d*$/.test(val)) {
+                        setFormEdit({ ...formEdit, phone: val });
+                      }
+                    }}
                   />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm text-gray-400 mb-1">
-                    Nueva Contraseña (dejar en blanco si no desea cambiarla)
-                  </label>
-                  <input
-                    type="password"
-                    className="w-full p-2 bg-[#262729] border border-gray-600 rounded text-white placeholder-gray-500"
-                    placeholder="•••••••••"
-                    value={formEdit.password || ""}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, password: e.target.value })
-                    }
-                  />
-                </div>
+
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
                     Estado

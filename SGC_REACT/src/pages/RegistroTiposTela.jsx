@@ -4,32 +4,35 @@ import { SecureImage } from "../components/SecureImage";
 import toast, { Toaster } from "react-hot-toast";
 
 export function RegistroTiposTela() {
-  const [tiposDeTelas, setTiposDeTelas] = useState([]); 
+  const [tiposDeTelas, setTiposDeTelas] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [tiposDeTelasEditando, setTiposDeTelasEditando] = useState(null);
-  const [mostrarModalRegistro, setMostrarModalRegistro] = useState(false); 
-  const [formEdit, setFormEdit] = useState({}); 
+  const [mostrarModalRegistro, setMostrarModalRegistro] = useState(false);
+  const [formEdit, setFormEdit] = useState({});
   const [formRegistro, setFormRegistro] = useState({
     name: "",
     material_type: "",
     description: "",
-    price_unit: ""
+    price_unit: "",
   });
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
 
-  // Cargar Datos  
+  // Cargar Datos
   const fetchTiposTelas = async () => {
     try {
       if (!token) return;
-      const response = await fetch("http://127.0.0.1:8000/api/inventory/types/", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/inventory/types/",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
       if (response.ok) {
         const data = await response.json();
         setTiposDeTelas(data);
@@ -59,7 +62,9 @@ export function RegistroTiposTela() {
   });
 
   // --- Paginación ---
-  const totalPaginas = Math.ceil(tiposDeTelasFiltradas.length / elementosPorPagina);
+  const totalPaginas = Math.ceil(
+    tiposDeTelasFiltradas.length / elementosPorPagina,
+  );
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const indiceFin = indiceInicio + elementosPorPagina;
   const tiposDeTelasPaginadas = tiposDeTelasFiltradas.slice(
@@ -77,19 +82,27 @@ export function RegistroTiposTela() {
   const handleRegistrar = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/inventory/types/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/inventory/types/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formRegistro),
         },
-        body: JSON.stringify(formRegistro),
-      });
+      );
 
       if (response.ok) {
         toast.success("Tela registrada con éxito");
         setMostrarModalRegistro(false);
-        setFormRegistro({ name: "", material_type: "", description: "", price_unit: "" });
+        setFormRegistro({
+          name: "",
+          material_type: "",
+          description: "",
+          price_unit: "",
+        });
         fetchTiposTelas();
       } else {
         toast.error("Error al registrar. Verifica los datos.");
@@ -99,93 +112,111 @@ export function RegistroTiposTela() {
     }
   };
 
-  
   // --- Eliminar (DELETE) ---
   const eliminarTiposDeTelas = (fabric_type_id) => {
-    toast((t) => (
-      <span className="flex flex-col sm:flex-row items-center gap-3">
-        <span className="text-sm">
-          ¿Estás seguro de <b>eliminar</b> esta tela?
-        </span>
-        <div className="flex gap-2">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-200 text-black px-2 py-1 rounded text-xs font-semibold hover:bg-gray-300 transition-colors"
-          >
-            No
-          </button>
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              ejecutarEliminacionReal(fabric_type_id); // Llamamos a la lógica de la API
-            }}
-            className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold hover:bg-red-700 transition-colors shadow-md"
-          >
-            Sí, eliminar
-          </button>
-        </div>
-      </span>
-    ), {
-      duration: 5000,
-      position: "top-center",
-      style: {
-        background: "#2a2b2c", 
-        color: "#fff",
-        border: "1px solid #ec4444",
-      },
-    });
-  };
+    toast(
+      (t) => (
+        <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
+          <div className="flex items-center gap-3">
+            <div className="text-left">
+              <h3 className="font-bold text-sm">¿Eliminar tipo de tela?</h3>
+              <p className="text-xs text-gray-400">
+                Esta acción no se puede deshacer
+              </p>
+            </div>
+          </div>
 
+          <div className="flex gap-2 w-full justify-end mt-1">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs transition-colors font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id); // Cierra la alerta
+                ejecutarEliminacionReal(fabric_type_id); // Ejecuta la lógica de borrado
+              }}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-colors font-bold shadow-md"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity, // Mantiene el toast abierto hasta que el usuario decida
+        style: {
+          background: "transparent",
+          boxShadow: "none",
+          padding: 0,
+        },
+      },
+    );
+  };
   // Función del fetch
   const ejecutarEliminacionReal = async (fabric_type_id) => {
     const loadingToast = toast.loading("Eliminando tipo de tela...");
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/inventory/types/${fabric_type_id}/`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`,
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/inventory/types/${fabric_type_id}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (response.ok) {
-        toast.success("Tipo de tela eliminada exitosamente", { id: loadingToast });
-        fetchTiposTelas(); 
+        toast.success("Tipo de tela eliminada exitosamente", {
+          id: loadingToast,
+        });
+        fetchTiposTelas();
       } else {
         const errorData = await response.json();
-        toast.error(errorData.detail || "No se puede eliminar: Esta tela tiene retazos asociados.", { id: loadingToast });
+        toast.error(
+          errorData.detail ||
+            "No se puede eliminar: Esta tela tiene retazos asociados.",
+          { id: loadingToast },
+        );
       }
     } catch (error) {
       console.error("Error al eliminar:", error);
       toast.error("Hubo un error de conexión.", { id: loadingToast });
     }
   };
-  
+
   // --- Editar (SET) ---
   const editarTiposDeTelas = (tiposDeTela) => {
     setTiposDeTelasEditando(tiposDeTela);
-    setFormEdit({ ...tiposDeTela }); 
+    setFormEdit({ ...tiposDeTela });
   };
 
   // --- Guardar Edición (PATCH) ---
   const guardarEdicion = async () => {
     try {
-      const id = formEdit.Fabric_Type_id; 
-      
+      const id = formEdit.Fabric_Type_id;
+
       const datosAEnviar = {
         name: formEdit.name,
         material_type: formEdit.type || formEdit.material_type,
         description: formEdit.description,
-        price_unit: parseFloat(formEdit.price_unit)
+        price_unit: parseFloat(formEdit.price_unit),
       };
 
-      const response = await fetch(`http://127.0.0.1:8000/api/inventory/types/${id}/`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/inventory/types/${id}/`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(datosAEnviar),
         },
-        body: JSON.stringify(datosAEnviar),
-      });
+      );
 
       if (response.ok) {
         toast.success("Tela actualizada correctamente");
@@ -219,7 +250,7 @@ export function RegistroTiposTela() {
             backgroundPosition: "center",
           }}
         />
-      
+
         <main className="relative z-10 flex-1 px-4 py-8">
           <div className="w-full max-w-6xl mx-auto">
             <div className="text-center mb-8">
@@ -227,7 +258,8 @@ export function RegistroTiposTela() {
                 Registro de los Tipos de Telas
               </h1>
               <p className="text-gray-300 text-lg">
-                Administración completa de las telas de las que parten los retazos
+                Administración completa de las telas de las que parten los
+                retazos
               </p>
             </div>
 
@@ -259,7 +291,8 @@ export function RegistroTiposTela() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-white font-bold text-lg">
-                        {tiposDeTela.Fabric_Type_id}/Tela de {tiposDeTela.material_type}
+                        {tiposDeTela.Fabric_Type_id}/Tela de{" "}
+                        {tiposDeTela.material_type}
                       </h3>
                     </div>
                   </div>
@@ -268,14 +301,19 @@ export function RegistroTiposTela() {
                     <p>
                       <span className="text-gray-400">Fecha de registro:</span>{" "}
                       <span className="text-white">
-                        {new Date(tiposDeTela.registered_at).toLocaleDateString()}
+                        {new Date(
+                          tiposDeTela.registered_at,
+                        ).toLocaleDateString()}
                       </span>
                     </p>
-                    
+
                     <p>
-                      <span className="text-gray-400">Precio por unidad (metro):</span>{" "}
+                      <span className="text-gray-400">
+                        Precio por unidad (metro):
+                      </span>{" "}
                       <span className="text-white">
-                        {tiposDeTela.price_unit} $                       </span>
+                        {tiposDeTela.price_unit} ${" "}
+                      </span>
                     </p>
 
                     <p>
@@ -284,28 +322,23 @@ export function RegistroTiposTela() {
                     </p>
 
                     <p>
-                      <span className="text-gray-400">
-                        Descripción:
-                      </span>
+                      <span className="text-gray-400">Descripción:</span>
                       <br />
-                      <span
-                        className="text-white block mt-1 overflow-y-auto break-words max-h-24"
-                      >
+                      <span className="text-white block mt-1 overflow-y-auto break-words max-h-24">
                         {tiposDeTela.description}
                       </span>
                     </p>
 
-
                     <div className="mt-2 px-4 py-4 bg-gray-800/50 rounded-lg flex justify-center">
-                      <SecureImage 
-                        id={tiposDeTela.Fabric_Type_id} 
-                        tipo="tipo" 
+                      <SecureImage
+                        id={tiposDeTela.Fabric_Type_id}
+                        tipo="tipo"
                         alt={`QR para ${tiposDeTela.name}`}
                         className="w-24 h-24 object-contain rounded-lg"
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2 mt-6">
                     <button
                       onClick={() => editarTiposDeTelas(tiposDeTela)}
@@ -327,7 +360,9 @@ export function RegistroTiposTela() {
                       Editar
                     </button>
                     <button
-                      onClick={() => eliminarTiposDeTelas(tiposDeTela.Fabric_Type_id)}
+                      onClick={() =>
+                        eliminarTiposDeTelas(tiposDeTela.Fabric_Type_id)
+                      }
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded text-sm transition-colors flex items-center justify-center gap-1"
                     >
                       <svg
@@ -421,12 +456,14 @@ export function RegistroTiposTela() {
                   <input
                     type="text"
                     value={formEdit.type || formEdit.material_type || ""}
-                    onChange={(e) => setFormEdit({ ...formEdit, type: e.target.value })}
+                    onChange={(e) =>
+                      setFormEdit({ ...formEdit, type: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Descripcion
@@ -434,7 +471,9 @@ export function RegistroTiposTela() {
                   <input
                     type="text"
                     value={formEdit.description || ""}
-                    onChange={(e) => setFormEdit({ ...formEdit, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormEdit({ ...formEdit, description: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   />
@@ -447,7 +486,9 @@ export function RegistroTiposTela() {
                   <input
                     type="number"
                     value={formEdit.price_unit || ""}
-                    onChange={(e) => setFormEdit({ ...formEdit, price_unit: e.target.value })}
+                    onChange={(e) =>
+                      setFormEdit({ ...formEdit, price_unit: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   />
@@ -460,7 +501,9 @@ export function RegistroTiposTela() {
                   <input
                     type="text"
                     value={formEdit.name || ""}
-                    onChange={(e) => setFormEdit({ ...formEdit, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormEdit({ ...formEdit, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   />
@@ -496,11 +539,15 @@ export function RegistroTiposTela() {
 
               <form onSubmit={handleRegistrar} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Nombre de la Tela</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Nombre de la Tela
+                  </label>
                   <input
                     type="text"
                     value={formRegistro.name}
-                    onChange={(e) => setFormRegistro({ ...formRegistro, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormRegistro({ ...formRegistro, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="Ej: Seda Premium"
                     required
@@ -508,11 +555,18 @@ export function RegistroTiposTela() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Tipo de Material</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Tipo de Material
+                  </label>
                   <input
                     type="text"
                     value={formRegistro.material_type}
-                    onChange={(e) => setFormRegistro({ ...formRegistro, material_type: e.target.value })}
+                    onChange={(e) =>
+                      setFormRegistro({
+                        ...formRegistro,
+                        material_type: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="Ej: Algodón / Poliéster"
                     required
@@ -520,10 +574,17 @@ export function RegistroTiposTela() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Descripción
+                  </label>
                   <textarea
                     value={formRegistro.description}
-                    onChange={(e) => setFormRegistro({ ...formRegistro, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormRegistro({
+                        ...formRegistro,
+                        description: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     rows="3"
                     placeholder="Detalles de la tela..."
@@ -531,12 +592,19 @@ export function RegistroTiposTela() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Precio por Unidad (Metro)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Precio por Unidad (Metro)
+                  </label>
                   <input
                     placeholder="REF dolar: 10.50"
                     step="0.01"
                     value={formRegistro.price_unit}
-                    onChange={(e) => setFormRegistro({ ...formRegistro, price_unit: e.target.value })}
+                    onChange={(e) =>
+                      setFormRegistro({
+                        ...formRegistro,
+                        price_unit: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                     required
                   />

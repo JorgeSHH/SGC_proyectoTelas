@@ -71,7 +71,7 @@ export function RegistroRetazos() {
     const token = localStorage.getItem("access");
 
     if (!token) {
-      toast.error("No estás autenticado. Inicia sesión nuevamente."); 
+      toast.error("No estás autenticado. Inicia sesión nuevamente.");
       setLoading(false);
       return;
     }
@@ -102,7 +102,7 @@ export function RegistroRetazos() {
       );
 
       if (response.ok) {
-        toast.success("Retazo registrado con éxito"); 
+        toast.success("Retazo registrado con éxito");
         setFormData({
           fabric_type_id: "",
           length_meters: "",
@@ -120,7 +120,7 @@ export function RegistroRetazos() {
         if (errorData.detail) errorMsg += ` ${errorData.detail}`;
         if (errorData.errors)
           errorMsg += ` ${JSON.stringify(errorData.errors)}`;
-        toast.error(errorMsg); 
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Error de red:", error);
@@ -132,9 +132,7 @@ export function RegistroRetazos() {
 
   return (
     <>
-      <Toaster />{" "}
-
-      <NavbarVen />
+      <Toaster /> <NavbarVen />
       <div className="min-h-screen flex flex-col relative bg-gray-900">
         <div
           className="absolute inset-0 z-0"
@@ -157,19 +155,19 @@ export function RegistroRetazos() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="w-full sm:w-3/4 md:w-2/3 lg:w-1/2 mx-auto">
-  <label
-    htmlFor="fabric_type_id"
-    className="block text-sm sm:text-base md:text-lg font-medium text-gray-300 mb-2"
-  >
-    Tipo de Tela
-  </label>
-  <select
-    id="fabric_type_id"
-    name="fabric_type_id"
-    value={formData.fabric_type_id}
-    onChange={handleInputChange}
-    className="
+              <div className="w-full sm:w-3/4 md:w-full lg:w-full mx-auto">
+                <label
+                  htmlFor="fabric_type_id"
+                  className="block text-sm left-0 sm:text-base md:text-lg font-medium text-gray-300 mb-2"
+                >
+                  Tipo de Tela
+                </label>
+                <select
+                  id="fabric_type_id"
+                  name="fabric_type_id"
+                  value={formData.fabric_type_id}
+                  onChange={handleInputChange}
+                  className="
       w-full 
       px-3 py-2 sm:px-4 sm:py-3 
       bg-[#262729] 
@@ -179,30 +177,29 @@ export function RegistroRetazos() {
       focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent 
       transition-all duration-200
     "
-    required
-    disabled={loading}
-  >
-    <option value="" key="default">
-      Selecciona un tipo...
-    </option>
+                  required
+                  disabled={loading}
+                >
+                  <option value="" key="default">
+                    Selecciona un tipo...
+                  </option>
 
-    {tiposTela.map((tipo) => (
-      <option
-        key={tipo.Fabric_Type_id}
-        value={tipo.Fabric_Type_id}
-      >
-        {tipo.name} ({tipo.material_type})
-      </option>
-    ))}
-  </select>
+                  {tiposTela.map((tipo) => (
+                    <option
+                      key={tipo.Fabric_Type_id}
+                      value={tipo.Fabric_Type_id}
+                    >
+                      {tipo.name} ({tipo.material_type})
+                    </option>
+                  ))}
+                </select>
 
-  {loading && tiposTela.length === 0 && (
-    <p className="text-xs sm:text-sm text-gray-400 mt-1">
-      Cargando tipos...
-    </p>
-  )}
-</div>
-
+                {loading && tiposTela.length === 0 && (
+                  <p className="text-xs sm:text-sm text-gray-400 mt-1">
+                    Cargando tipos...
+                  </p>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

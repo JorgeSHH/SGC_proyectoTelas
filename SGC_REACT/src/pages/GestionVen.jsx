@@ -133,10 +133,10 @@ export function GestionVen() {
       (t) => (
         <div className="flex flex-col items-center gap-3 p-4 bg-[#2d2d2d] text-white rounded-lg shadow-xl border border-gray-600 min-w-[320px]">
           <div className="flex items-center gap-3">
-            <span className="text-2xl text-red-500">🗑️</span>
+            <span className="text-2xl text-red-500"></span>
             <div className="text-left">
               <h3 className="font-bold text-sm">¿Eliminar vendedora?</h3>
-              <p className="text-xs text-gray-400">Pasará a estado inactivo</p>
+              <p className="text-xs text-gray-400">Los retazos registrado por esta vendedora seran reasignados a usted</p>
             </div>
           </div>
 

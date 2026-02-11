@@ -8,7 +8,6 @@ import sewingMachine from "../assets/sewing-machine-svgrepo-com.svg";
 export function VenMenu() {
   return (
     <>
-      {/* El Navbar va aquí, dentro del return, antes del contenido principal */}
       <NavbarVen />
 
       <div className="min-h-screen flex flex-col relative bg-gray-900">
@@ -52,8 +51,6 @@ export function VenMenu() {
             </div>
           </section>
         </main>
-
-        {/* El Footer va aquí, al final del contenedor principal */}
         <Footer />
       </div>
     </>

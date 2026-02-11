@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../index.css";
 import miLogo from "../assets/castillo logo.jpg";
-import { Link } from "react-router-dom"; // <--- 1. IMPORTAR LINK
+import { Link } from "react-router-dom"; 
 
 export function NavbarVen() {
   const [salesWomanData, setSalesWomanData] = useState(null);
@@ -56,7 +56,7 @@ export function NavbarVen() {
     localStorage.clear(); 
     window.location.href = '/login';
   };
-  // -------------------------------------
+
 
   return (
     <>
@@ -129,30 +129,28 @@ export function NavbarVen() {
         </div>
       </nav>
 
-      {/* --- SEGUNDA NAVBAR (Navegación Responsiva) --- */}
+      {/* --- Navegación Responsiva --- */}
       <nav
         id="nav-bar-ven-2"
         className="bg-white/10 backdrop-blur-md shadow-sm border-b border-gray-300"
       >
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* VERSIÓN ESCRITORIO (Texto) - CAMBIOS A LINK */}
+          {/* VERSIÓN ESCRITORIO */}
           <div className="hidden md:flex items-center h-12 space-x-8">
             <Link to='/registro-retazos' className="text-gray-900 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold transition">
               Registro de retazos 
             </Link>
             <a href='#' className="text-gray-900 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold border-b-2 border-transparent transition">
-              {/* Espaciador, se deja como <a> o se puede eliminar si no se necesita */}
             </a>
             <Link to='/consulta-ven' className="text-gray-900 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold transition">
               Consulta de Retazos
             </Link>
             <a href='#' className="text-gray-900 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold border-b-2 border-transparent transition">
-              {/* Espaciador, se deja como <a> o se puede eliminar si no se necesita */}
             </a>
           </div>
 
-          {/* VERSIÓN MÓVIL (Iconos) - CAMBIOS A LINK */}
+          {/* VERSIÓN MÓVIL */}
           <div className="flex md:hidden items-center justify-around h-14 w-full bg-white/80 backdrop-blur-sm -mx-4 px-12 border-t border-gray-200">
             
             <Link to="/registro-retazos" className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ec4444]">

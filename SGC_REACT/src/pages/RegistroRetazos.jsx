@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavbarVen } from "../components/NavbarVen";
-import toast, { Toaster } from "react-hot-toast"; // 1. Importación agregada
+import toast, { Toaster } from "react-hot-toast";
 
 export function RegistroRetazos() {
   const [formData, setFormData] = useState({
@@ -14,7 +14,7 @@ export function RegistroRetazos() {
   const [tiposTela, setTiposTela] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 1. OBTENER TIPOS DE TELA
+  // OBTENER TIPOS DE TELA
   useEffect(() => {
     async function cargarTipos() {
       const token = localStorage.getItem("access");
@@ -57,13 +57,12 @@ export function RegistroRetazos() {
     }));
   };
 
-  // 2. ENVIAR DATOS AL BACKEND
+  //ENVIAR DATOS AL BACKEND
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validación extra para evitar enviar NaN
     if (!formData.fabric_type_id || isNaN(parseInt(formData.fabric_type_id))) {
-      toast.error("Por favor selecciona un tipo de tela válido."); // 2. Cambio de alert a toast.error
+      toast.error("Por favor selecciona un tipo de tela válido.");
       return;
     }
 
@@ -72,7 +71,7 @@ export function RegistroRetazos() {
     const token = localStorage.getItem("access");
 
     if (!token) {
-      toast.error("No estás autenticado. Inicia sesión nuevamente."); // 3. Cambio de alert a toast.error
+      toast.error("No estás autenticado. Inicia sesión nuevamente."); 
       setLoading(false);
       return;
     }
@@ -103,7 +102,7 @@ export function RegistroRetazos() {
       );
 
       if (response.ok) {
-        toast.success("Retazo registrado con éxito"); // 4. Cambio de alert a toast.success
+        toast.success("Retazo registrado con éxito"); 
         setFormData({
           fabric_type_id: "",
           length_meters: "",
@@ -121,11 +120,11 @@ export function RegistroRetazos() {
         if (errorData.detail) errorMsg += ` ${errorData.detail}`;
         if (errorData.errors)
           errorMsg += ` ${JSON.stringify(errorData.errors)}`;
-        toast.error(errorMsg); // 5. Cambio de alert a toast.error
+        toast.error(errorMsg); 
       }
     } catch (error) {
       console.error("Error de red:", error);
-      toast.error("No se pudo conectar con el servidor."); // 6. Cambio de alert a toast.error
+      toast.error("No se pudo conectar con el servidor.");
     } finally {
       setLoading(false);
     }
@@ -134,7 +133,7 @@ export function RegistroRetazos() {
   return (
     <>
       <Toaster />{" "}
-      {/* 7. Agregado el componente Toaster aquí para que funcionen las notificaciones */}
+
       <NavbarVen />
       <div className="min-h-screen flex flex-col relative bg-gray-900">
         <div
@@ -158,7 +157,6 @@ export function RegistroRetazos() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* SELECT DINÁMICO - CORREGIDO KEYS Y MAYÚSCULAS */}
               <div className="w-full sm:w-3/4 md:w-2/3 lg:w-1/2 mx-auto">
   <label
     htmlFor="fabric_type_id"

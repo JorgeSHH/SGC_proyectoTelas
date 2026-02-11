@@ -42,11 +42,10 @@ export const Login = () => {
         duration: 2000,
       });
 
-      // --- SOLUCIÓN APLICADA AQUÍ ---
       if (user.role === "admin") {
-        navigate("/adm-menu"); // Ruta limpia
+        navigate("/adm-menu"); 
       } else {
-        navigate("/ven-menu"); // Ruta limpia
+        navigate("/ven-menu"); 
       }
     } catch (error) {
       console.error("Error:", error);

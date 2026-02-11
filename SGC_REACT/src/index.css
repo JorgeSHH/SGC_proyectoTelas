@@ -6,7 +6,6 @@
 @layer base {
   button {
     all: unset;
-    /* Quita absolutamente todas las propiedades CSS heredadas */
     display: inline-block;
     cursor: pointer;
   }

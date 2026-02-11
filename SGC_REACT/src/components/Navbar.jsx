@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../index.css";
 import miLogo from "../assets/castillo logo.jpg";
 import { getAllAdmin } from "../api/tasks.api";
-import { Link } from "react-router-dom"; // <--- 1. IMPORTAR LINK
+import { Link } from "react-router-dom"; 
 
 export function Navbar() {
   const [adminData, setAdminData] = useState(null);
@@ -26,7 +26,7 @@ export function Navbar() {
     }
 
     localStorage.clear(); 
-    window.location.href = '/login'; // En este caso sí usamos recarga para limpiar memoria
+    window.location.href = '/login'; 
   };
 
   useEffect(() => {
@@ -143,14 +143,12 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* --- SEGUNDA NAVBAR (Navegación) --- */}
       <nav
         id="nav-bar2"
         className="bg-white/10 backdrop-blur-md shadow-sm border-b border-gray-300 sticky"
       >
         <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* VERSIÓN ESCRITORIO - CAMBIOS A LINK */}
           <div className="hidden md:flex items-center h-12 space-x-8">
             <Link to='/gestion-ven' className="text-gray-900 hover:text-[#ec4444] px-3 py-2 rounded-md text-sm font-bold transition">
               Gestión de Vendedoras
@@ -166,7 +164,7 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* VERSIÓN MÓVIL (Iconos) - CAMBIOS A LINK */}
+
           <div className="flex md:hidden items-center justify-around h-14 w-full bg-white/80 backdrop-blur-sm -mx-4 px-4 border-t border-gray-200">
             
             <Link to="/gestion-ven" className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ec4444]">

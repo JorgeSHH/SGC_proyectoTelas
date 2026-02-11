@@ -3,7 +3,7 @@ import React from "react";
 export const Footer = () => {
   return (
     <footer className="bg-[#262729] text-white mt-auto">
-      {/* Sección principal del footer - REDUCIDO ESPACIO */}
+      {/* Sección principal del footer */}
       <div className="container mx-auto px-4 py-4">
         <hr className="border-gray-700 mb-3" />
 

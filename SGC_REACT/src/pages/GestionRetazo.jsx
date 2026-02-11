@@ -76,7 +76,7 @@ export function GestionRetazo() {
     cargarTipos();
   }, []);
 
-  // --- Filtrado MODIFICADO ---
+  // Filtrado MODIFICADO
   const retazosFiltradas = retazos.filter((retazo) => {
     const terminoBusqueda = filtro.toLowerCase();
 
@@ -90,7 +90,7 @@ export function GestionRetazo() {
       creador.includes(terminoBusqueda)
     );
   });
-  // -----------------------------
+
 
   const totalPaginas = Math.ceil(retazosFiltradas.length / elementosPorPagina);
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
@@ -186,10 +186,7 @@ export function GestionRetazo() {
     }
   };
 
-  // --- CORRECCIÓN AQUÍ: Al editar, forzamos a que active sea booleano ---
-  // --- CORRECCIÓN AQUÍ: Al editar, forzamos a que active sea booleano ---
-  // Usamos Boolean() para convertir 1, "1", true -> true
-  // Y convertir 0, "0", false, null, undefined -> false
+  
   const editarRetazos = (retazos) => {
     setRetazosEditando(retazos);
     setFormEdit({
@@ -205,11 +202,9 @@ export function GestionRetazo() {
         description: formEdit.description,
         length_meters: formEdit.length_meters,
         width_meters: formEdit.width_meters,
-        // Forzamos a que sea booleano al enviar también
         active: formEdit.active === true,
       };
 
-      // Console log para debuggear en el navegador (F12 > Console)
       console.log("Enviando datos al backend:", datosAEnviar);
 
       const response = await fetch(
@@ -309,7 +304,7 @@ export function GestionRetazo() {
                         : "bg-gray-900 border-gray-800 opacity-60 grayscale hover:opacity-80 hover:grayscale-0"
                     }`}
                   >
-                    {/* --- CAMBIO: Posición top-2 para subir la etiqueta --- */}
+                    {}
                     {!isActive && (
                       <div className="absolute top-2 right-4 bg-black/80 text-white text-xs font-bold px-3 py-1 rounded-full border border-gray-500 z-10">
                         VENDIDO / INACTIVO
@@ -523,15 +518,13 @@ export function GestionRetazo() {
                   />
                 </div>
 
-                {/* --- CAMBIO: Selector de Estado Activo/Inactivo CORREGIDO --- */}
+                {/* Selector de Estado Activo/Inactivo*/}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Estado del Retazo
                   </label>
                   <select
-                    // Usamos una condición ternaria simple: true -> "true", false -> "false"
                     value={formEdit.active ? "true" : "false"}
-                    // Usamos la forma funcional de actualización de estado para evitar errores de "stale closure"
                     onChange={(e) =>
                       setFormEdit((prev) => ({
                         ...prev,

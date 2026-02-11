@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
-// Importamos el componente SecureImage
 import { SecureImage } from "../components/SecureImage";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -20,7 +19,7 @@ export function RegistroTiposTela() {
   const elementosPorPagina = 6;
   const token = localStorage.getItem("access");
 
-  // --- Cargar Datos (GET) ---
+  // Cargar Datos  
   const fetchTiposTelas = async () => {
     try {
       if (!token) return;
@@ -44,8 +43,7 @@ export function RegistroTiposTela() {
     fetchTiposTelas();
   }, []);
 
-  // --- Filtrado MODIFICADO ---
-  // Ahora filtra explícitamente por Fabric_Type_id, name y description
+  // Filtrado MODIFICADO
   const tiposDeTelasFiltradas = tiposDeTelas.filter((tipo) => {
     const terminoBusqueda = filtro.toLowerCase();
 
@@ -131,14 +129,14 @@ export function RegistroTiposTela() {
       duration: 5000,
       position: "top-center",
       style: {
-        background: "#2a2b2c", // Fondo oscuro para combinar con tu dashboard
+        background: "#2a2b2c", 
         color: "#fff",
         border: "1px solid #ec4444",
       },
     });
   };
 
-  // --- Función 2: La que realmente hace el fetch ---
+  // Función del fetch
   const ejecutarEliminacionReal = async (fabric_type_id) => {
     const loadingToast = toast.loading("Eliminando tipo de tela...");
     try {
@@ -151,7 +149,7 @@ export function RegistroTiposTela() {
 
       if (response.ok) {
         toast.success("Tipo de tela eliminada exitosamente", { id: loadingToast });
-        fetchTiposTelas(); // Recargamos la lista
+        fetchTiposTelas(); 
       } else {
         const errorData = await response.json();
         toast.error(errorData.detail || "No se puede eliminar: Esta tela tiene retazos asociados.", { id: loadingToast });
@@ -212,7 +210,7 @@ export function RegistroTiposTela() {
     <>
       <Navbar />
       <div className="min-h-screen flex flex-col relative bg-gray-900">
-        {/* Fondo idéntico */}
+        {/* Fondo */}
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -295,7 +293,6 @@ export function RegistroTiposTela() {
                       </span>
                     </p>
 
-                    {/* --- AQUÍ ESTÁ EL CAMBIO DEL QR --- */}
                     <div className="mt-2 px-4 py-4 bg-gray-800/50 rounded-lg flex justify-center">
                       <SecureImage 
                         id={tiposDeTela.Fabric_Type_id} 
@@ -304,7 +301,6 @@ export function RegistroTiposTela() {
                         className="w-24 h-24 object-contain rounded-lg"
                       />
                     </div>
-                    {/* --------------------------------- */}
                   </div>
                   
                   <div className="flex gap-2 mt-6">

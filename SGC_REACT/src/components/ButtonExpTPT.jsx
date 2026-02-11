@@ -7,10 +7,8 @@ import { autoTable } from "jspdf-autotable";
 export function ButtonExpTPT() {
   const [loading, setLoading] = useState(false);
 
-  // --- 1. AGREGAMOS LA FUNCIÓN DE CÁLCULO AQUÍ ---
   const calcularPrecioRetazo = (retazo) => {
     const area = (retazo.width_meters || 0) * (retazo.length_meters || 0);
-    // Usamos || 0 para evitar NaN si no hay precio unitario
     const precioPorMetroCuadrado = retazo.fabric_type?.price_unit || 0;
     return area * precioPorMetroCuadrado;
   };
@@ -53,22 +51,17 @@ export function ButtonExpTPT() {
 
     if (data && data.length > 0) {
       const dataProcesada = data.map((item) => {
-        // Usamos 'item' original para calcular antes de modificarlo
         const precioCalculado = calcularPrecioRetazo(item).toFixed(2);
         const itemCopia = { ...item };
 
-        // --- AGREGAR CAMBIO AQUÍ: Inyectar precio ---
         itemCopia.precio = precioCalculado;
-        // -------------------------------------------
 
-        // 1. Transformación de Booleano a Texto para 'active'
+
         if (itemCopia.active === true) {
           itemCopia.active = "activo";
         } else {
           itemCopia.active = "inactivo";
         }
-
-        // 2. Corrección para evitar [object Object]
         if (
           itemCopia.fabric_type &&
           typeof itemCopia.fabric_type === "object"
@@ -137,21 +130,19 @@ export function ButtonExpTPT() {
         return itemCopia;
       });
 
-      // Obtenemos las columnas
+
       const tableColumn = Object.keys(dataProcesada[0]);
 
-      // --- CAMBIO: Encontramos el índice de la descripción ---
       const descIndex = tableColumn.indexOf("description");
 
-      // Definimos estilos específicos para columnas
       const columnStyles = {};
       if (descIndex !== -1) {
         columnStyles[descIndex] = {
-          cellWidth: 35, // Ancho fijo para la descripción (puedes cambiar este valor)
-          cellOverflow: "linebreak", // Hace que el texto baje de línea si es largo
+          cellWidth: 35, 
+          cellOverflow: "linebreak", 
         };
       }
-      // -------------------------------------------------------
+
 
       const tableRows = dataProcesada.map((row) => Object.values(row));
 
@@ -160,9 +151,8 @@ export function ButtonExpTPT() {
         body: tableRows,
         startY: 30,
         styles: { fontSize: 8 },
-        // --- AQUÍ APLICAMOS LOS ESTILOS ---
         columnStyles: columnStyles,
-        // -------------------------------
+
       });
 
       doc.save("Retazos.pdf");

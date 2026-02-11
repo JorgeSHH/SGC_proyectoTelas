@@ -24,7 +24,7 @@ export const Footer = () => {
         <div className="sm:hidden text-center ">
           <div className="flex justify-center items-center space-x-2">
             <span className="text-gray-400 text-xs">
-              2024 Sistema de Gestión de Telas. Todos los derechos reservados a
+              2026 Sistema de Gestión de Telas. Todos los derechos reservados a
               Armando Martinez, Ramses Barreto, Jorge holguin.
             </span>
           </div>

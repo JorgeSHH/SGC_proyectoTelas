@@ -39,7 +39,7 @@ export const Login = () => {
       localStorage.setItem("user", JSON.stringify(user));
 
       toast.success(`¡Login exitoso! Hola ${user.username}`, {
-        duration: 2000,
+        duration: 1000,
       });
 
       if (user.role === "admin") {

@@ -362,14 +362,14 @@ export function GestionRetazo() {
                     </div>
 
                     <div className="space-y-2 text-sm">
-                      <p>
-                        <span className="text-gray-400">
-                          Fecha de registro:
-                        </span>{" "}
-                        <span className="text-white">
-                          {retazos.registered_at}
-                        </span>
-                      </p>
+                    <p>
+                      <span className="text-gray-400">
+                        Fecha de registro:
+                      </span>{" "}
+                      <span className="text-white">
+                        {new Date(retazos.registered_at).toLocaleDateString()}
+                      </span>
+                    </p>
 
                       <div className="flex justify-between ">
                         <span>
@@ -409,12 +409,13 @@ export function GestionRetazo() {
                       </p>
 
                       <p>
-                        <span className="text-gray-400">Descripcion:</span>{" "}
+                        <span className="text-gray-400">Descripción:</span>{" "}
                         <br />
-                        <span className="text-white">
+                        {/* line-clamp-3 corta el texto a 3 líneas. break-words rompe palabras largas si es necesario */}
+                        <span className="text-white block break-words line-clamp-3" title={retazos.description}>
                           {retazos.description}
                         </span>
-                      </p>
+                    </p>
 
                       <div className="mt-2 px-4 py-4 rounded-lg flex justify-center">
                         <SecureImage
@@ -695,7 +696,7 @@ export function GestionRetazo() {
       })
     }
     maxLength="250" // <--- Limita el texto a 250 caracteres
-    className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none" // <--- resize-none evita que se agrande y rompa el diseño
+    className="w-full px-4 py-2 bg-[#262729] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none  block mt-1 overflow-y-auto break-words max-h-24" // <--- resize-none evita que se agrande y rompa el diseño
     rows="3"
     placeholder="Detalles del retazo..."
     required

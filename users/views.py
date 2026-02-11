@@ -142,11 +142,11 @@ class SaleswomanViewSet(viewsets.ModelViewSet, AuditMixins):
 
         self.log_action(admin=admin_profile, action_type='CREATE', instance=instancia)  # aqui se registra en  la auditoria
 
-        # try:
-        #     from utils.utils import enviar_correo_bienvenida
-        #     enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plana)
-        # except Exception as e:
-        #     print(f"Error enviando correo: {e}")
+        try:
+            from utils.utils import enviar_correo_bienvenida
+            enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plana)
+        except Exception as e:
+            print(f"Error enviando correo: {e}")
     
     def perform_update(self, serializer):
         """"""
@@ -240,11 +240,11 @@ class AdministratorViewSet(viewsets.ModelViewSet):
         password_plata = self.request.data.get('password')
         instancia = serializer.save()
 
-        # try:
-        #     from utils.utils import enviar_correo_bienvenida
-        #     enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plata)
-        # except Exception as e:
-        #     print(f"Error enviando correo al adminastrador: {e}")
+        try:
+            from utils.utils import enviar_correo_bienvenida
+            enviar_correo_bienvenida(instancia.email, instancia.first_name, password_plata)
+        except Exception as e:
+            print(f"Error enviando correo al adminastrador: {e}")
 
     def perform_destroy(self, instance):
         """ 

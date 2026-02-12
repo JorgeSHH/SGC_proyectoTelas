@@ -5,7 +5,7 @@
 **Fecha de actualización:** 12 de febrero de 2026  
 **Creado por:** Jorge Holguin, Armando Martinez y Ramses Barreto  
 **Empresa:** El Castillo - Tu Centro Textil
-
+**Proyecto hecho con fines educativos, no pretendemos afectar a nadien**
 ---
 
 ## Índice
